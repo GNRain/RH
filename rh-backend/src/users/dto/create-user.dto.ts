@@ -1,6 +1,6 @@
 // src/users/dto/create-user.dto.ts
 
-import { Role } from '@prisma/client';
+import { Department } from '@prisma/client';
 import {
   IsEmail,
   IsEnum,
@@ -39,7 +39,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   position: string;
 
-  @IsEnum(Role) // Ensures the role is one of the values from our Role enum
+  @IsEnum(Department)
   @IsNotEmpty()
-  role: Role;
+  department: Department;
 }

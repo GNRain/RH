@@ -1,0 +1,51 @@
+/* This is the CSS you provided, slightly adapted for our theme */
+.scroll-list-container {
+  position: relative;
+  width: 100%;
+}
+
+.scroll-list {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px; /* Add some padding so scrollbar doesn't overlap content */
+}
+
+/* Scrollbar styles */
+.scroll-list::-webkit-scrollbar {
+  width: 6px;
+}
+.scroll-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-list::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 3px;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Gradients for scroll fade effect */
+.top-gradient, .bottom-gradient {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50px;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+  border-radius: 1rem;
+}
+.top-gradient {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(31, 41, 55, 1), transparent);
+}
+.bottom-gradient {
+  bottom: 0;
+  height: 70px;
+  background: linear-gradient(to top, rgba(31, 41, 55, 1), transparent);
+}

@@ -4,6 +4,19 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+enum Department {
+  HR
+  IT
+  Business
+  Management
+}
+
+enum LeaveStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,11 +24,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-enum Role {
-  EMPLOYEE
-  RH
 }
 
 model User {
@@ -27,12 +35,40 @@ model User {
   familyName  String
   phoneNumber String   @unique 
   email       String   @unique
-  cin         String   @unique 
+  cin         String   @unique
+  department Department @default(Business)
   position    String
   joinDate    DateTime @default(now())
-  role        Role     @default(EMPLOYEE) 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isTwoFactorEnabled   Boolean @default(false)
   twoFactorSecret      String?
+  leaveRequests LeaveRequest[]
+  notifications Notification[]
+}
+
+model LeaveRequest {
+  id        String   @id @default(cuid())
+  fromDate  DateTime
+  toDate    DateTime
+  reason    String
+  status    LeaveStatus @default(PENDING)
+
+  // Relation to the user who made the request
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relation to the user who receives the notification
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

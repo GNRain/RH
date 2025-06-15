@@ -1,6 +1,6 @@
 // src/auth/auth.controller.ts
 
-import { Controller, Post, UseGuards, Request, Body, Param, Res } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, Body, Param, Res, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -9,6 +9,7 @@ import { Response } from 'express';
 import * as qrcode from 'qrcode';
 import { TwoFactorAuthCodeDto } from './dto/two-factor-auth-code.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { VerifyResetCodeDto } from './dto/verify-reset-code.dto'
 
 @Controller('auth')
 export class AuthController {
@@ -25,8 +26,9 @@ export class AuthController {
   @UseGuards(AuthGuard('local'))
   @Post('login')
   async login(@Request() req) {
-    // At this point, req.user contains the validated user object from our LocalStrategy
-    return this.authService.login(req.user);
+    // The LocalStrategy attaches the user object to `req.user`.
+    // We pass the entire object to the login service.
+    return this.authService.login(req.user); // <-- MODIFIED
   }
 
   @Post('forgot-password')
@@ -82,5 +84,31 @@ export class AuthController {
       req.user,
       twoFactorAuthCodeDto.code,
     );
+  }
+
+  // --- ADD THIS NEW ENDPOINT ---
+  @Post('verify-reset-code')
+  async verifyResetCode(@Body() verifyResetCodeDto: VerifyResetCodeDto) {
+    return this.authService.verifyResetCode(verifyResetCodeDto);
+  }
+
+  // We are replacing the old reset-password endpoint with this new one.
+  // It is protected by the standard JWT guard.
+  @Post('set-new-password')
+  @UseGuards(JwtAuthGuard)
+  async setNewPassword(
+    @Request() req,
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ) {
+    // The JwtAuthGuard now attaches the full payload to req.user
+    const userId = req.user.sub; // The user ID is in the 'sub' claim
+    const purpose = req.user.purpose;
+
+    if (purpose !== 'password-reset') {
+        throw new UnauthorizedException('Invalid token purpose.');
+    }
+    
+    // We now pass the userId to the service method
+    return this.authService.resetPassword(userId, resetPasswordDto);
   }
 }

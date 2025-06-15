@@ -9,3 +9,14 @@
 
   z-index: 10;        /* Ensure it sits on top of the background */
 }
+.forgot-password-link {
+  color: #a3a3a3;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgot-password-link:hover {
+  color: #fff;
+  text-decoration: underline;
+}

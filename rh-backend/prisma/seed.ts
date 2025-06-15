@@ -20,7 +20,7 @@ async function main() {
         familyName: 'Naouali',
         cin: adminCin,
         position: 'Head of HR',
-        role: 'RH',
+        department: 'HR',
         password: hashedPassword,
         email: 'ghaith.naoueli@gmail.com',
         phoneNumber: '93038322',
@@ -28,7 +28,12 @@ async function main() {
     });
     console.log(`✅ Created RH Admin user: ${adminUser.name} ${adminUser.familyName}`);
   } else {
-    console.log('ℹ️ RH Admin user already exists. Skipping creation.');
+    // If user exists, ensure they have the HR department
+    await prisma.user.update({
+        where: { cin: adminCin },
+        data: { department: 'HR' }
+    });
+    console.log('ℹ️ RH Admin user already exists. Ensured HR department is set.');
   }
 }
 

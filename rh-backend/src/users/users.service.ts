@@ -5,6 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as PDFDocument from 'pdfkit'; // --- ADD IMPORT
+import * as fs from 'fs';             // --- ADD IMPORT
+import * as path from 'path';         // --- ADD IMPORT
 
 @Injectable()
 export class UsersService {
@@ -33,7 +36,7 @@ export class UsersService {
         phoneNumber: createUserDto.phoneNumber,
         cin: createUserDto.cin,
         position: createUserDto.position,
-        role: createUserDto.role,
+        department: createUserDto.department,
       },
     });
 
@@ -104,5 +107,80 @@ export class UsersService {
     return this.prisma.user.delete({
       where: { id },
     });
+    
   }
+  async generateWorkCertificate(userId: string): Promise<Buffer> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID "${userId}" not found`);
+    }
+
+    const pdfDoc = new PDFDocument({ size: 'A4', margin: 50 });
+
+    const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> => {
+      return new Promise((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        stream.on('data', (chunk) => chunks.push(chunk));
+        stream.on('end', () => resolve(Buffer.concat(chunks)));
+        stream.on('error', reject);
+      });
+    };
+    
+    // --- Document Header ---
+    
+    const logoPath = path.join(process.cwd(), 'dist/assets/logo.png');
+    if (fs.existsSync(logoPath)) {
+        // --- MODIFIED IMAGE PLACEMENT ---
+        // We explicitly provide x and y coordinates (the top-left margin)
+        // before passing the options object.
+        pdfDoc.image(logoPath, 50, 40, {
+            width: 100, // Set a fixed width, height will scale automatically
+        });
+    }
+    
+    pdfDoc
+      .fontSize(18)
+      .text('Human Ressources Ghaith (HRG)', 50, 65, { align: 'center' });
+    
+    pdfDoc.moveDown(4);
+
+    // --- Document Title ---
+    pdfDoc.fontSize(20).font('Helvetica-Bold').text('ATTESTATION DE TRAVAIL', { align: 'center' });
+    pdfDoc.moveDown(3);
+
+    // --- Document Body ---
+    const fullName = `${user.name} ${user.familyName}`;
+    const joinDate = new Intl.DateTimeFormat('en-GB').format(user.joinDate);
+    const currentDate = new Intl.DateTimeFormat('en-GB').format(new Date());
+
+    pdfDoc.fontSize(12).font('Helvetica');
+    pdfDoc.text(
+        `This is to certify that Mr./Ms. ${fullName}, holder of CIN n° ${user.cin}, is currently employed by our company, Human Ressources Ghaith, since ${joinDate}.`,
+        { align: 'justify' }
+    );
+    pdfDoc.moveDown();
+    pdfDoc.text(
+        `Mr./Ms. ${user.familyName} holds the position of ${user.position}.`,
+        { align: 'justify' }
+    );
+    pdfDoc.moveDown();
+    pdfDoc.text(
+        'This certificate is issued to serve for whatever legal purpose it may serve.',
+        { align: 'justify' }
+    );
+    pdfDoc.moveDown(4);
+
+    // --- Document Footer ---
+    pdfDoc.text(`Done at Mornag, on ${currentDate}.`, { align: 'right' });
+    pdfDoc.moveDown(2);
+    pdfDoc.text('Management', { align: 'right' });
+    
+    pdfDoc.end();
+
+    return streamToBuffer(pdfDoc);
+  }
+  
 }

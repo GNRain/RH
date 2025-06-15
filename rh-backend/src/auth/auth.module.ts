@@ -8,11 +8,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from '../prisma/prisma.module';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
+    MailModule, // --- ADD MailModule HERE ---
     JwtModule.register({
       // We will move this secret to an environment variable later
       secret: 'REPLACE_THIS_WITH_A_REAL_SECRET', 
@@ -22,5 +24,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   controllers: [AuthController],
   // We will create these providers next
   providers: [AuthService, LocalStrategy, JwtStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

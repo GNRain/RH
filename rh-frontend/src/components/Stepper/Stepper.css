@@ -157,3 +157,7 @@
   width: 1rem;
   color: #fff;
 }
+.stepper-qr-expanded {
+  min-height: 520px;
+  transition: min-height 0.4s ease-in-out;
+}

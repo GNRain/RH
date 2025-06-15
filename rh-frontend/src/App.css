@@ -36,37 +36,52 @@
   z-index: 1; /* Sits on top of the background */
 }
 
-.logout-button {
+.top-right-controls {
   position: absolute;
   top: 2rem;
   right: 2.5rem;
-  z-index: 10;
-  
-  /* Reusing our button styles */
-  padding: 0.5rem 1.25rem;
+  z-index: 60; /* Higher than the dock */
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.notification-button {
+  padding: 0.75rem; /* Make it square-ish */
   font-size: 1rem;
-  font-weight: 500;
-  border: 1px solid #ffffff;
-  border-radius: 9999px;
+  border: 1px solid #4b5563;
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s;
-  background-color: transparent;
-  color: #ffffff;
+  background-color: rgba(31, 41, 55, 0.7);
+  color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-button:hover {
+  background-color: #374151;
+  border-color: #6b7280;
+}
+
+/* Move the existing logout button styles inside the new container */
+.logout-button {
+  /* position, top, right, z-index are no longer needed here */
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #4b5563;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: rgba(31, 41, 55, 0.7);
+  color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .logout-button:hover {
-  background-color: rgba(255, 0, 0, 0.356);
-  color: #fff;
-}
-.logout-button:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(82, 39, 255, 0.5);
-}
-.logout-button:active {
-  background-color: rgba(82, 39, 255, 0.2);
-  transform: scale(0.98);
-}
-.logout-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  background-color: rgba(239, 68, 68, 0.3);
+  border-color: #ef4444;
 }

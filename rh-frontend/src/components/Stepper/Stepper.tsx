@@ -1,5 +1,3 @@
-// src/components/Stepper.tsx
-
 import React, {
   useState,
   Children,
@@ -17,6 +15,7 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   currentStep: number;
   onStepChange: (step: number) => void;
+  overrideHeight?: number; // --- ADD THIS NEW PROP ---
   onFinalStepCompleted?: () => void;
   stepCircleContainerClassName?: string;
   stepContainerClassName?: string;
@@ -41,6 +40,7 @@ export default function Stepper({
   children,
   currentStep,
   onStepChange,
+  overrideHeight, // --- Destructure the new prop ---
   onFinalStepCompleted = () => {},
   stepCircleContainerClassName = "",
   stepContainerClassName = "",
@@ -104,19 +104,18 @@ export default function Stepper({
           isCompleted={isCompleted}
           currentStep={currentStep}
           direction={direction}
+          overrideHeight={overrideHeight} // --- Pass the prop down ---
           className={`step-content-default ${contentClassName}`}
         >
           {stepsArray[currentStep - 1]}
         </StepContentWrapper>
-
-        {/* The built-in footer is intentionally removed */}
         
       </div>
     </div>
   );
 }
 
-// --- HELPER COMPONENTS (Unchanged from Official Code) ---
+// --- HELPER COMPONENTS ---
 
 interface StepContentWrapperProps {
   isCompleted: boolean;
@@ -124,6 +123,7 @@ interface StepContentWrapperProps {
   direction: number;
   children: ReactNode;
   className?: string;
+  overrideHeight?: number; // --- ADD THIS NEW PROP ---
 }
 
 function StepContentWrapper({
@@ -132,14 +132,18 @@ function StepContentWrapper({
   direction,
   children,
   className,
+  overrideHeight, // --- Destructure the new prop ---
 }: StepContentWrapperProps) {
   const [parentHeight, setParentHeight] = useState<number>(0);
+
+  // --- USE THE OVERRIDE HEIGHT IF PROVIDED, OTHERWISE USE THE CALCULATED HEIGHT ---
+  const height = overrideHeight || parentHeight;
 
   return (
     <motion.div
       className={className}
       style={{ position: "relative", overflow: "hidden", minHeight: "170px" }}
-      animate={{ height: isCompleted ? 0 : parentHeight }}
+      animate={{ height: isCompleted ? 0 : height }}
       transition={{ type: "spring", duration: 0.4 }}
     >
       <AnimatePresence initial={false} mode="sync" custom={direction}>
@@ -152,6 +156,7 @@ function StepContentWrapper({
     </motion.div>
   );
 }
+
 
 interface SlideTransitionProps {
   children: ReactNode;
