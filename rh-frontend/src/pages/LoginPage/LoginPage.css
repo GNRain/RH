@@ -1,0 +1,11 @@
+.login-logo {
+  position: absolute; /* Position it relative to the viewport */
+  top: 2rem;          /* 2rem from the top */
+  left: 2rem;         /* 2rem from the left */
+  
+  /* --- This is the resizing logic --- */
+  width: 180px;       /* Set a fixed width for the logo */
+  height: auto;       /* 'auto' maintains the original aspect ratio */
+
+  z-index: 10;        /* Ensure it sits on top of the background */
+}
