@@ -13,7 +13,13 @@ interface Notification {
   createdAt: string;
 }
 
-export function NotificationDropdown() {
+// --- ADD NEW PROPS TO THE INTERFACE ---
+interface NotificationDropdownProps {
+    onNotificationsLoaded: (notifications: Notification[]) => void;
+    onNotificationRead: () => void;
+}
+
+export function NotificationDropdown({ onNotificationsLoaded, onNotificationRead }: NotificationDropdownProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,6 +31,8 @@ export function NotificationDropdown() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setNotifications(response.data);
+        // --- Pass the loaded notifications up to the App component ---
+        onNotificationsLoaded(response.data);
       } catch (error) {
         console.error("Failed to fetch notifications", error);
       } finally {
@@ -32,9 +40,10 @@ export function NotificationDropdown() {
       }
     };
     fetchNotifications();
-  }, []);
+  }, [onNotificationsLoaded]);
 
   const handleMarkAsRead = async (notification: Notification) => {
+    // Don't do anything if it's already read
     if (notification.isRead) return;
 
     try {
@@ -42,14 +51,19 @@ export function NotificationDropdown() {
         await axios.patch(`${API_URL}/notifications/${notification.id}/read`, {}, {
             headers: { Authorization: `Bearer ${token}` },
         });
-        // Update the state locally for immediate feedback
+        
+        // Update the state locally for immediate visual feedback
         setNotifications(prev => 
             prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
         );
+        
+        // --- Tell the App component that one notification was read ---
+        onNotificationRead();
     } catch (error) {
         console.error("Failed to mark notification as read", error);
     }
   };
+
 
   if (loading) {
     return <div className="notification-dropdown loading">Loading...</div>;

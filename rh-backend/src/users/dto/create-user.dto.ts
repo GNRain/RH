@@ -1,11 +1,12 @@
 // src/users/dto/create-user.dto.ts
 
-import { Department } from '@prisma/client';
+import { Department, UserStatus } from '@prisma/client';
 import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
   IsString,
+  IsOptional,
   MinLength,
 } from 'class-validator';
 
@@ -42,4 +43,8 @@ export class CreateUserDto {
   @IsEnum(Department)
   @IsNotEmpty()
   department: Department;
+
+  @IsEnum(UserStatus)
+  @IsOptional() // Make it optional during creation, as it has a default value
+  status?: UserStatus;
 }

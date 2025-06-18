@@ -1,6 +1,6 @@
 // src/users/users.service.ts
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
@@ -8,10 +8,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import * as PDFDocument from 'pdfkit'; // --- ADD IMPORT
 import * as fs from 'fs';             // --- ADD IMPORT
 import * as path from 'path';         // --- ADD IMPORT
+import { ChangePasswordDto } from './dto/change-password.dto'; // --- ADD IMPORT
+import { AuthService } from 'src/auth/auth.service'; //
+import { Department, Prisma, User, UserStatus } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private authService: AuthService,) {}
 
   /**
    * Creates a new user in the database.
@@ -50,14 +53,39 @@ export class UsersService {
    * This is called by the GET /users endpoint.
    * @returns A list of all user objects, without their password hashes.
    */
-  async findAll() {
-    const users = await this.prisma.user.findMany();
+async findAll(params: {
+    search?: string;
+    department?: Department;
+    status?: UserStatus;
+  }): Promise<User[]> {
+    const { search, department, status } = params;
+    const where: Prisma.UserWhereInput = {};
+
+    if (department) {
+      where.department = department;
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { familyName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { cin: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const users = await this.prisma.user.findMany({ where });
 
     // We must ensure we don't leak password hashes in our API responses
     users.forEach(user => delete (user as { password?: string }).password);
     
     return users;
   }
+
   /**
    * Retrieves a single user by their ID.
    * @param id The unique ID of the user.
@@ -181,6 +209,40 @@ export class UsersService {
     pdfDoc.end();
 
     return streamToBuffer(pdfDoc);
+  }
+
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    // 1. Verify old password
+    const isOldPasswordValid = await bcrypt.compare(
+      changePasswordDto.oldPassword,
+      user.password,
+    );
+    if (!isOldPasswordValid) {
+      throw new UnauthorizedException('Invalid old password.');
+    }
+
+    // 2. Verify 2FA code
+    const is2faCodeValid = this.authService.isTwoFactorCodeValid(
+      changePasswordDto.twoFactorCode,
+      user,
+    );
+    if (!is2faCodeValid) {
+      throw new UnauthorizedException('Invalid 2FA code.');
+    }
+
+    // 3. Hash and update new password
+    const newHashedPassword = await bcrypt.hash(changePasswordDto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: newHashedPassword },
+    });
+
+    return { message: 'Password changed successfully.' };
   }
   
 }
