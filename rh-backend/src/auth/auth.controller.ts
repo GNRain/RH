@@ -68,7 +68,7 @@ export class AuthController {
   ) {
     return this.authService.turnOnTwoFactorAuth(
       twoFactorAuthCodeDto.code,
-      req.user.id,
+      req.user.sub,
     );
   }
 

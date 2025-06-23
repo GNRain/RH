@@ -1,0 +1,14 @@
+/* src/components/LeaveBalanceIndicator/LeaveBalanceIndicator.css */
+
+.leave-balance-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-color);
+  font-weight: 500;
+  font-size: 0.875rem;
+}

@@ -1,0 +1,81 @@
+/* src/components/ApprovalChain/ApprovalChain.css */
+
+.approval-chain-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: #1f2937; /* A slightly lighter dark color */
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  overflow-x: auto; /* Allow horizontal scrolling on small screens */
+}
+
+.chain-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #4b5563;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.step-icon {
+  display: flex;
+  align-items: center;
+  font-size: 1.25rem;
+}
+
+.step-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-role {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #f9fafb;
+}
+
+.step-approver-name {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.step-comment {
+  font-size: 0.75rem;
+  color: #fca5a5;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+/* Status-specific styles */
+.chain-step.pending {
+  border-color: #f59e0b;
+}
+.icon-pending {
+  color: #f59e0b;
+}
+
+.chain-step.accepted {
+  border-color: #10b981;
+}
+.icon-accepted {
+  color: #10b981;
+}
+
+.chain-step.declined {
+  border-color: #ef4444;
+}
+.icon-declined {
+  color: #ef4444;
+}
+
+.chain-connector {
+  color: #4b5563;
+}

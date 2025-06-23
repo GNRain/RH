@@ -1,0 +1,248 @@
+{
+  "sidebar": {
+    "home": "Accueil",
+    "my_leave": "Mes Congés",
+    "leave_management": "Gestion des Congés",
+    "employees": "Employés",
+    "documents": "Documents",
+    "profile": "Profil",
+    "settings": "Paramètres de l'entreprise"
+  },
+  "header": {
+    "greeting": "Bonjour, {{name}}"
+  },
+  "login_page": {
+    "welcome_title": "Bienvenue au portail RHG",
+    "welcome_subtitle": "Veuillez vous connecter",
+    "next_button": "Suivant",
+    "credentials_title": "Veuillez saisir vos identifiants",
+    "cin_placeholder": "Numéro CIN",
+    "password_placeholder": "Mot de passe",
+    "forgot_password_link": "Mot de passe oublié ?",
+    "previous_button": "Précédent",
+    "sign_in_button": "Se connecter",
+    "signing_in_button": "Connexion...",
+    "setup_2fa_title": "Configurer l'authentification à 2 facteurs",
+    "setup_2fa_subtitle": "Scannez le code QR avec votre application d'authentification (par ex. Google Authenticator), puis cliquez sur \"Terminé\".",
+    "done_button": "Terminé",
+    "enter_2fa_title": "Veuillez saisir votre code 2FA",
+    "code_placeholder": "Code à 6 chiffres",
+    "verify_button": "Vérifier",
+    "verifying_button": "Vérification...",
+    "success_title": "Vous vous êtes connecté avec succès !",
+    "success_subtitle": "Nous vous redirigeons sous peu."
+  },
+  "profile_page": {
+    "loading": "Chargement du profil...",
+    "personal_information": "Informations Personnelles",
+    "full_name": "Nom Complet",
+    "email": "Email",
+    "cin": "CIN",
+    "department": "Département",
+    "position": "Poste",
+    "join_date": "Date d'embauche",
+    "error_load_profile": "Impossible de charger les informations du profil.",
+    "change_password_title": "Changer le mot de passe",
+    "old_password": "Ancien mot de passe",
+    "new_password": "Nouveau mot de passe",
+    "password_length_rule": "Doit contenir au moins 8 caractères.",
+    "confirm_new_password": "Confirmer le nouveau mot de passe",
+    "enter_2fa_prompt": "Saisir le code 2FA pour confirmer",
+    "change_password_button": "Changer le mot de passe",
+    "confirm_change_button": "Confirmer le changement",
+    "saving_button": "Sauvegarde...",
+    "error_password_length": "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+    "error_passwords_no_match": "Les nouveaux mots de passe ne correspondent pas.",
+    "error_2fa_required": "Veuillez saisir votre code 2FA pour confirmer.",
+    "error_failed_password_change": "Échec de la modification du mot de passe."
+  },
+  "leave_management_page": {
+    "title": "Gestion des Congés",
+    "subtitle": "Examinez et répondez aux demandes de congé en attente des employés.",
+    "no_requests_title": "Tout est en ordre !",
+    "no_requests_subtitle": "Il n'y a aucune demande de congé en attente pour le moment.",
+    "decline_reason_prompt": "Refuser la demande de congé",
+    "decline_reason_label": "Veuillez fournir une raison pour le refus de cette demande.",
+    "decline_button": "Refuser la demande",
+    "cancel_button": "Annuler",
+    "approve_title": "Approuver",
+    "decline_title": "Refuser",
+    "request_from": "Demande de",
+    "department_tag": "Département",
+    "reason_label": "Raison",
+    "dates_label": "Dates",
+    "duration_label": "Durée",
+    "from_label": "Du",
+    "to_label": "À"
+  },
+  "leave_page": {
+    "new_request_title": "Nouvelle Demande de Congé",
+    "new_request_subtitle": "Sélectionnez les dates et donnez une raison pour votre congé.",
+    "from_label": "Du",
+    "to_label": "Au",
+    "reason_label": "Raison",
+    "reason_placeholder": "Veuillez fournir une raison pour votre congé...",
+    "submit_button": "Soumettre la Demande",
+    "submitting_button": "Envoi...",
+    "history_title": "Historique des Demandes",
+    "history_loading": "Chargement de l'historique...",
+    "history_empty": "Vous n'avez aucune demande de congé.",
+    "duration": "Durée : {{count}} jour(s)"
+  },
+  "leave_statuses": {
+    "pending": "EN ATTENTE",
+    "accepted": "ACCEPTÉ",
+    "declined": "REFUSÉ"
+  },
+   "employees_page": {
+    "title": "Employés",
+    "subtitle": "Recherchez, filtrez et gérez tous les employés de l'organisation.",
+    "search_placeholder": "Rechercher par nom, email, or CIN...",
+    "new_employee_button": "Nouvel Employé",
+    "no_results": "Aucun employé trouvé correspondant à vos critères.",
+    "loading": "Chargement...",
+    "table": {
+      "name": "Nom",
+      "contact": "Contact",
+      "position": "Poste",
+      "department": "Département",
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "create_modal": {
+      "title": "Créer un Nouvel Employé",
+      "first_name": "Prénom",
+      "family_name": "Nom de famille",
+      "email": "Email",
+      "phone_number": "Numéro de téléphone",
+      "cin": "CIN",
+      "position": "Poste",
+      "password": "Mot de passe temporaire",
+      "department": "Département",
+      "role": "Rôle",
+      "assign_tl": "Affecter un Chef d'Équipe",
+      "assign_manager": "Affecter un Manager",
+      "tl_note": "La sélection d'un chef d'équipe affecte également automatiquement son manager.",
+      "create_button": "Créer l'Employé"
+    },
+    "edit_modal": {
+      "title": "Modifier {{name}}",
+      "change_tl": "Changer de Chef d'Équipe",
+      "change_manager": "Changer de Manager",
+      "reset_2fa_button": "Réinitialiser 2FA",
+      "reset_2fa_confirm": "Êtes-vous sûr de vouloir réinitialiser l'authentification à 2 facteurs pour {{name}} ? Il devra la reconfigurer lors de sa prochaine connexion.",
+      "save_button": "Enregistrer les modifications"
+    },
+    "departments": {
+      "all": "Tous les Départements",
+      "hr": "RH",
+      "it": "IT",
+      "business": "Business",
+      "management": "Direction"
+    },
+    "statuses": {
+      "all": "Tous les Statuts",
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "roles": {
+      "employee": "Employé",
+      "team_leader": "Chef d'Équipe",
+      "manager": "Manager",
+      "hr": "RH",
+      "dhr": "DRH"
+    },
+    "placeholders": {
+      "none": "Aucun"
+    }
+  },
+  "documents_page": {
+    "title": "Documents",
+    "subtitle": "Sélectionnez un document à générer et à télécharger.",
+    "work_certificate_title": "Attestation de Travail",
+    "work_certificate_description": "Un document officiel certifiant votre emploi, votre poste et votre date de début.",
+    "download_button": "Télécharger",
+    "generating_button": "Génération...",
+    "error_unexpected": "Une erreur inattendue est survenue."
+  },
+  "reset_password_page": {
+    "step1_title": "Réinitialiser votre mot de passe",
+    "step1_subtitle": "Veuillez saisir votre numéro CIN pour recevoir un code de réinitialisation.",
+    "cin_placeholder": "Numéro CIN",
+    "cancel_button": "Annuler",
+    "send_code_button": "Envoyer le code",
+    "sending_button": "Envoi...",
+    "step2_title": "Saisir le code de réinitialisation",
+    "step2_subtitle": "Veuillez vérifier votre email pour le code à 8 chiffres et le saisir ci-dessous.",
+    "code_placeholder": "Code de réinitialisation à 8 chiffres",
+    "back_button": "Retour",
+    "verify_button": "Vérifier le code",
+    "verifying_button": "Vérification...",
+    "step3_title": "Choisissez un nouveau mot de passe",
+    "step3_subtitle": "Votre nouveau mot de passe doit contenir au moins 8 caractères.",
+    "new_password_placeholder": "Nouveau mot de passe",
+    "confirm_password_placeholder": "Confirmer le nouveau mot de passe",
+    "reset_button": "Réinitialiser le mot de passe",
+    "resetting_button": "Réinitialisation...",
+    "step4_title": "Réinitialisation du mot de passe réussie !",
+    "step4_subtitle": "Nous vous redirigeons vers la page de connexion dans 5 secondes...",
+    "error_cin_required": "Veuillez saisir votre CIN.",
+    "error_code_required": "Veuillez saisir le code de réinitialisation.",
+    "error_fields_required": "Veuillez remplir les deux champs de mot de passe.",
+    "error_password_length": "Le mot de passe doit contenir au moins 8 caractères.",
+    "error_passwords_no_match": "Les mots de passe ne correspondent pas.",
+    "error_unexpected": "Une erreur inattendue est survenue."
+  },
+   "positions": {
+    "position_director_hr": "Directeur des Ressources Humaines",
+    "position_hr_generalist": "Généraliste RH",
+    "position_eng_manager": "Manager Technique",
+    "position_prod_manager": "Chef de Produit",
+    "position_senior_dev": "Développeur Senior",
+    "position_lead_analyst": "Analyste Principal",
+    "position_software_dev": "Développeur Logiciel",
+    "position_business_analyst": "Analyste d'Affaires"
+  },
+   "settings_page": {
+    "title": "Paramètres de l'entreprise",
+    "subtitle": "Gérez les données de base de l'entreprise comme les départements et les postes.",
+    "departments_title": "Gérer les Départements",
+    "positions_title": "Gérer les Postes",
+    "add_department_button": "Ajouter un Département",
+    "add_position_button": "Ajouter un Poste",
+    "edit_department_title": "Modifier le Département",
+    "edit_position_title": "Modifier le Poste",
+    "create_department_title": "Créer un Département",
+    "create_position_title": "Créer un Poste",
+    "name_label": "Nom",
+    "delete_confirm": "Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible."
+  },
+ "dashboard": {
+    "title": "Tableau de Bord RH",
+    "welcome": "Bienvenue !",
+    "welcome_subtitle": "Votre tableau de bord personnalisé sera bientôt disponible.",
+    "loading": "Chargement du tableau de bord...",
+    "error": "Impossible de charger les données du tableau de bord. Veuillez vérifier le serveur backend.",
+    "kpi": {
+        "total_employees": "Total des Employés Actifs",
+        "pending_leaves": "Demandes de Congé en Attente",
+        "new_hires": "Nouvelles Embauches ce Mois-ci",
+        "avg_tenure": "Ancienneté Moyenne (Années)"
+    },
+    "charts": {
+        "dept_employees": "Employés par Département",
+        "leave_types": "Répartition des Types de Congés",
+        "gender_ratio": "Répartition par Sexe",
+        "age_distribution": "Répartition par Âge",
+        "headcount_trend": "Tendance des Effectifs (6 derniers mois)",
+        "leave_by_dept": "Jours de Congé par Département"
+        
+    },
+    "lists": {
+        "on_leave": "Qui est en congé aujourd'hui",
+        "anniversaries": "Anniversaires à venir (30 prochains jours)",
+        "empty_leave": "Tout le monde est là !",
+        "empty_anniversaries": "Aucun anniversaire à venir."
+    }
+}
+}

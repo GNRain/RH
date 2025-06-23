@@ -26,7 +26,7 @@
 /* The modal content itself now sits on top of the backdrop */
 .modal-content {
   position: relative; /* Ensure it's on top of the backdrop sibling */
-  background-color: var(--bg-secondary);
+  background-color: #ffffff; 
   color: var(--text-primary);
   border-radius: 1rem;
   border: 1px solid var(--border-color);

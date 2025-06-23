@@ -1,0 +1,26 @@
+.homepage-container { color: white; }
+.homepage-container h1 { font-size: 2rem; font-weight: 600; margin-bottom: 2rem; }
+.dashboard-grid { display: grid; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+/* FIX: Make the KPI grid span the full width with 4 equal columns */
+.kpi-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* NEW: A new grid for our 3 larger charts */
+.main-chart-grid {
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+/* This can be reused for smaller charts */
+.secondary-chart-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.dashboard-widget { background-color: #1f2937; border: 1px solid #374151; border-radius: 1rem; padding: 1.5rem; color: white; display: flex; flex-direction: column; }
+.widget-header { display: flex; align-items: center; gap: 1rem; }
+.widget-icon { font-size: 1.5rem; color: #8A2BE2; background-color: rgba(138, 43, 226, 0.1); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.widget-title { font-weight: 500; color: #9ca3af; }
+.widget-content { margin-top: 1.5rem; flex-grow: 1; }
+.widget-value { font-size: 3rem; font-weight: 700; margin: 0; }
+.recharts-tooltip-wrapper { background-color: #111827 !important; border: 1px solid #374151 !important; border-radius: 0.5rem !important; }

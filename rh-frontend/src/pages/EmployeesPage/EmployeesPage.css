@@ -242,3 +242,12 @@ td a:hover {
   background-color: var(--border-color);
   color: var(--text-primary);
 }
+
+.button.button-danger {
+  background-color: #ef4444; /* A Tailwind-like red color */
+  color: white;
+  margin-right: auto; /* This pushes it to the left, away from other buttons */
+}
+.button.button-danger:hover {
+  background-color: #dc2626; /* A slightly darker red on hover */
+}

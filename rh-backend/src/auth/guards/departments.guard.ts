@@ -1,6 +1,7 @@
+// src/auth/guards/departments.guard.ts
+
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Department } from '@prisma/client';
 import { DEPARTMENTS_KEY } from '../decorators/departments.decorator';
 
 @Injectable()
@@ -8,18 +9,20 @@ export class DepartmentsGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredDepartments = this.reflector.getAllAndOverride<Department[]>(DEPARTMENTS_KEY, [
+    // FIX: The decorator now provides an array of strings
+    const requiredDepartmentNames = this.reflector.getAllAndOverride<string[]>(DEPARTMENTS_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    if (!requiredDepartments) {
-      return true; // No department specified, allow access
+    if (!requiredDepartmentNames) {
+      return true;
     }
 
     const { user } = context.switchToHttp().getRequest();
-    
-    // Check if the user's department is in the list of required departments
-    return requiredDepartments.some((department) => user.department === department);
+
+    // The JWT payload now contains `department` as a string name.
+    // We check if the user's department string is included in the required list.
+    return user && user.department && requiredDepartmentNames.some((departmentName) => user.department === departmentName);
   }
 }

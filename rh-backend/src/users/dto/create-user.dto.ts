@@ -1,6 +1,6 @@
 // src/users/dto/create-user.dto.ts
 
-import { Department, UserStatus } from '@prisma/client';
+import { Department, Role, UserStatus } from '@prisma/client';
 import {
   IsEmail,
   IsEnum,
@@ -38,13 +38,26 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
-  position: string;
-
-  @IsEnum(Department)
+  positionId: string;
+  
+  @IsString()
   @IsNotEmpty()
-  department: Department;
+  departmentId: string;
+
+  // --- ADDED/MODIFIED FIELDS ---
+  @IsEnum(Role)
+  @IsOptional()
+  role?: Role;
+
+  @IsString()
+  @IsOptional()
+  teamLeaderId?: string;
+  
+  @IsString()
+  @IsOptional()
+  managerId?: string;
 
   @IsEnum(UserStatus)
-  @IsOptional() // Make it optional during creation, as it has a default value
+  @IsOptional()
   status?: UserStatus;
 }

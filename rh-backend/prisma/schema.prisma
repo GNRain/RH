@@ -1,27 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-enum UserStatus {
-  ACTIVE
-  INACTIVE
-}
-
-enum Department {
-  HR
-  IT
-  Business
-  Management
-}
-
-enum LeaveStatus {
-  PENDING
-  ACCEPTED
-  DECLINED
-}
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -31,50 +10,141 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id          String   @id @default(cuid())
-  password    String
-  passwordResetToken   String?   @unique
-  passwordResetExpires DateTime?
-  name        String
-  familyName  String
-  phoneNumber String   @unique 
-  email       String   @unique
-  cin         String   @unique
-  department Department @default(Business)
-  position    String
-  joinDate    DateTime @default(now())
+// --- NEW Enums ---
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum LeaveType {
+  VACATION
+  SICK_LEAVE
+  PERSONAL
+}
+
+// Existing Enums
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Role {
+  EMPLOYEE
+  TEAM_LEADER
+  MANAGER
+  HR
+  DHR
+}
+
+enum LeaveStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum ApproverType {
+  EMPLOYEE
+  TEAM_LEADER
+  MANAGER
+  HR
+  DHR
+}
+
+model Department {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Position {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id                   String  @id @default(cuid())
+  password             String
+  passwordResetToken   String? @unique
+  passwordResetExpires DateTime?
+  name                 String
+  familyName           String
+  phoneNumber          String  @unique
+  email                String  @unique
+  cin                  String  @unique
+  joinDate             DateTime @default(now())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
   isTwoFactorEnabled   Boolean @default(false)
   twoFactorSecret      String?
-  status    UserStatus @default(ACTIVE)
-  leaveRequests LeaveRequest[]
-  notifications Notification[]
+  status               UserStatus @default(ACTIVE)
+  role                 Role @default(EMPLOYEE)
+
+  // --- NEW FIELDS FOR ANALYTICS ---
+  birthDate            DateTime?
+  terminationDate      DateTime?
+  gender               Gender?
+
+  departmentId         String
+  department           Department @relation(fields: [departmentId], references: [id])
+  positionId           String
+  position             Position   @relation(fields: [positionId], references: [id])
+  
+  teamLeaderId         String?
+  managerId            String?
+  teamLeader           User?      @relation("TeamLead", fields: [teamLeaderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  manager              User?      @relation("Manager", fields: [managerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  teamMembers          User[]     @relation("TeamLead")
+  managedUsers         User[]     @relation("Manager")
+
+  leaveRequests        LeaveRequest[]
+  notifications        Notification[]
+  leaveApprovals       LeaveApproval[]
 }
 
 model LeaveRequest {
-  id        String   @id @default(cuid())
-  fromDate  DateTime
-  toDate    DateTime
-  reason    String
-  status    LeaveStatus @default(PENDING)
+  id                String      @id @default(cuid())
+  fromDate          DateTime
+  toDate            DateTime
+  reason            String
+  overallStatus     LeaveStatus @default(PENDING)
+  
+  // --- NEW FIELD FOR ANALYTICS ---
+  type              LeaveType   @default(VACATION)
 
-  // Relation to the user who made the request
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  approvals         LeaveApproval[]
+  currentApproverId String?
+  userId            String
+  user              User        @relation(fields: [userId], references: [id])
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
 
+// Other models remain unchanged
 model Notification {
   id        String   @id @default(cuid())
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  // Relation to the user who receives the notification
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LeaveApproval {
+  id             String       @id @default(cuid())
+  status         LeaveStatus  @default(PENDING)
+  comment        String?
+  step           Int
+  leaveRequestId String
+  leaveRequest   LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  approverId     String?
+  approver       User?        @relation(fields: [approverId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approverType   ApproverType
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }

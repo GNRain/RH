@@ -1,49 +1,63 @@
+// src/leave/leave.controller.ts
+
 import { Controller, Post, Body, UseGuards, Request, Get, Patch, Param } from '@nestjs/common';
 import { LeaveService } from './leave.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CreateLeaveRequestDto } from './dto/create-leave.dto';
-import { Department } from '@prisma/client'; // --- Import Department ---
-import { Departments } from 'src/auth/decorators/departments.decorator'; // --- Import new decorator ---
-import { DepartmentsGuard } from 'src/auth/guards/departments.guard'; // --- Import new guard ---
-import { UpdateLeaveStatusDto } from './dto/update-leave-status.dto';
+import { UpdateLeaveActionDto } from './dto/update-leave-action.dto'; // --- NEW: Import the action DTO
 
 @Controller('leave')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard) // Protect all leave-related endpoints
 export class LeaveController {
   constructor(private readonly leaveService: LeaveService) {}
 
+  /**
+   * Endpoint for an employee to submit a new leave request.
+   * The logic in the service now builds the full approval chain.
+   */
   @Post()
   create(@Body() createLeaveDto: CreateLeaveRequestDto, @Request() req) {
     const userId = req.user.sub;
     return this.leaveService.create(createLeaveDto, userId);
   }
 
+  /**
+   * Endpoint for an employee to get their own leave request history.
+   * The service is now updated to include the full approval chain in the response.
+   */
   @Get('my-requests')
   findUserRequests(@Request() req) {
     const userId = req.user.sub;
     return this.leaveService.findAllForUser(userId);
   }
 
-  @Get('pending')
-  @UseGuards(DepartmentsGuard)
-  @Departments(Department.HR)
-  findAllPending() {
-    return this.leaveService.findAllPending();
+  /**
+   * --- NEW ENDPOINT ---
+   * For any approver (TL, Manager, HR, etc.) to get a list
+   * of leave requests waiting for their action.
+   */
+  @Get('pending-actions')
+  findPendingActions(@Request() req) {
+    const userId = req.user.sub;
+    return this.leaveService.findPendingForUser(userId);
   }
-
-  @Get('all')
-  // --- USE NEW GUARD AND DECORATOR ---
-  @UseGuards(DepartmentsGuard)
-  @Departments(Department.HR)
-  findAll() {
-    return this.leaveService.findAll();
-  }
-
-  @Patch(':id/status')
-  // --- USE NEW GUARD AND DECORATOR ---
-  @UseGuards(DepartmentsGuard)
-  @Departments(Department.HR)
-  updateStatus(@Param('id') id: string, @Body() updateStatusDto: UpdateLeaveStatusDto) {
-    return this.leaveService.updateStatus(id, updateStatusDto);
+  
+  @Get('balance')
+  async getBalance(@Request() req) {
+  return this.leaveService.getLeaveBalance(req.user.sub);
+}
+  /**
+   * --- NEW ENDPOINT ---
+   * For an approver to submit their decision (Approve/Decline) on a request.
+   * This replaces the old `/status` endpoint.
+   */
+  @Patch(':id/action')
+  processLeaveAction(
+    @Param('id') leaveRequestId: string,
+    @Request() req,
+    @Body() actionDto: UpdateLeaveActionDto,
+  ) {
+    const actingUserId = req.user.sub;
+    return this.leaveService.processApprovalAction(leaveRequestId, actingUserId, actionDto);
   }
 }

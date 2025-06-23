@@ -91,3 +91,46 @@
   justify-content: center;
   border: 2px solid #F9F9F9;
 }
+
+.lang-dropdown {
+  position: absolute;
+  top: calc(100% + 12px); /* Position it 12px below the button */
+  left: 0; /* Align to the right of its container */
+  width: 150px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.lang-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.lang-option:hover {
+  background-color: var(--accent-color-faded);
+  color: var(--text-primary);
+}
+
+.lang-option svg {
+  color: var(--accent-color);
+  font-size: 1rem;
+}
+

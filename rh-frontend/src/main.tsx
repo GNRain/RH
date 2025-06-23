@@ -7,6 +7,7 @@ import './index.css';
 
 // Import the router
 import { BrowserRouter } from 'react-router-dom';
+import './i18n'; // Import the i18next configuration
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -1,11 +1,15 @@
+// src/components/Header/Header.tsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { VscSettings, VscBell, VscGlobe, VscSignOut } from 'react-icons/vsc';
+import { useTranslation } from 'react-i18next';
+import { VscSettings, VscBell, VscGlobe, VscSignOut, VscCheck } from 'react-icons/vsc';
 import { NotificationDropdown } from '../NotificationDropdown/NotificationDropdown';
 import { Avatar } from '../Avatar/Avatar';
+import { LeaveBalanceIndicator } from '../LeaveBalanceIndicator/LeaveBalanceIndicator';
 import './Header.css';
 
-// A custom hook to detect clicks outside an element
+// Custom hook to detect clicks outside an element
 const useOutsideClick = (ref: React.RefObject<HTMLDivElement>, callback: () => void) => {
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -20,10 +24,8 @@ const useOutsideClick = (ref: React.RefObject<HTMLDivElement>, callback: () => v
     }, [ref, callback]);
 };
 
-// Define types for props
 interface UserData {
   name: string;
-  // Add other user properties as needed in the future
 }
 
 interface HeaderProps {
@@ -32,14 +34,25 @@ interface HeaderProps {
 }
 
 export function Header({ user, onLogout }: HeaderProps) {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+
+  // State for Notification Dropdown
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const notificationRef = useRef<HTMLDivElement>(null);
+  useOutsideClick(notificationRef, () => setIsNotificationOpen(false));
 
-  useOutsideClick(notificationRef, () => {
-    if (isNotificationOpen) setIsNotificationOpen(false);
-  });
+  // --- NEW: State and logic for Language Dropdown ---
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
+  const langDropdownRef = useRef<HTMLDivElement>(null);
+  useOutsideClick(langDropdownRef, () => setIsLangDropdownOpen(false));
+
+  const selectLanguage = (langCode: 'en' | 'fr') => {
+    i18n.changeLanguage(langCode);
+    setIsLangDropdownOpen(false); // Close dropdown after selection
+  };
+  // --- END OF NEW LOGIC ---
 
   const handleNotificationsLoaded = (notifications: any[]) => {
     setUnreadCount(notifications.filter(n => !n.isRead).length);
@@ -58,9 +71,7 @@ export function Header({ user, onLogout }: HeaderProps) {
         <div ref={notificationRef} style={{ position: 'relative' }}>
             <button className="action-btn" title="Notifications" onClick={() => setIsNotificationOpen(p => !p)}>
                 <VscBell size={20} />
-                {unreadCount > 0 && (
-                    <span className="notification-badge">{unreadCount}</span>
-                )}
+                {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
             </button>
             {isNotificationOpen && (
                 <NotificationDropdown 
@@ -69,10 +80,29 @@ export function Header({ user, onLogout }: HeaderProps) {
                 />
             )}
         </div>
-        <button className="action-btn" title="Language"><VscGlobe size={20} /></button>
+        
+        {/* --- UPDATED: Language button now opens a dropdown --- */}
+        <div ref={langDropdownRef} style={{ position: 'relative' }}>
+          <button className="action-btn" title="Language" onClick={() => setIsLangDropdownOpen(p => !p)}>
+              <VscGlobe size={20} />
+          </button>
+          {isLangDropdownOpen && (
+            <div className="lang-dropdown">
+              <button className="lang-option" onClick={() => selectLanguage('en')}>
+                <span>English</span>
+                {i18n.language === 'en' && <VscCheck />}
+              </button>
+              <button className="lang-option" onClick={() => selectLanguage('fr')}>
+                <span>Français</span>
+                {i18n.language === 'fr' && <VscCheck />}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       <div className="header-profile">
-        <span>Bonjour, {user?.name}</span>
+        <LeaveBalanceIndicator />
+        <span>{t('header.greeting', { name: user?.name })}</span>
         <Avatar name={user?.name} />
         <button className="action-btn logout-btn" title="Logout" onClick={onLogout}>
             <VscSignOut size={20} />

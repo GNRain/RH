@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ProfilePage.css';
 import { VscAccount, VscKey, VscSave } from 'react-icons/vsc';
+import { useTranslation } from 'react-i18next'; // --- ADD IMPORT ---
 
 const API_URL = 'http://localhost:3000';
 
@@ -16,19 +17,18 @@ interface UserProfile {
 }
 
 export function ProfilePage() {
+  const { t } = useTranslation(); // --- INITIALIZE THE HOOK ---
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // State for password change form
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [show2faInput, setShow2faInput] = useState(false);
   const [isPasswordChangeLoading, setIsPasswordChangeLoading] = useState(false);
-
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -54,18 +54,17 @@ export function ProfilePage() {
     setSuccess('');
 
     if (newPassword.length < 8) {
-      return setError('New password must be at least 8 characters long.');
+      return setError(t('profile_page.error_password_length')); // Use t()
     }
     if (newPassword !== confirmPassword) {
-      return setError('New passwords do not match.');
+      return setError(t('profile_page.error_passwords_no_match')); // Use t()
     }
-    // If validation passes, show the 2FA input
     setShow2faInput(true);
   };
   
   const handlePasswordChangeSubmit = async () => {
     if (!twoFactorCode) {
-        return setError('Please enter your 2FA code to confirm.');
+        return setError(t('profile_page.error_2fa_required')); // Use t()
     }
     setIsPasswordChangeLoading(true);
     setError('');
@@ -78,71 +77,68 @@ export function ProfilePage() {
             { headers: { Authorization: `Bearer ${token}` } }
         );
         setSuccess(response.data.message);
-        // Reset fields on success
         setOldPassword('');
         setNewPassword('');
         setConfirmPassword('');
         setTwoFactorCode('');
         setShow2faInput(false);
     } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to change password.');
+        // Backend error messages are not translated here
+        setError(err.response?.data?.message || t('profile_page.error_failed_password_change'));
     } finally {
         setIsPasswordChangeLoading(false);
     }
   }
 
   if (loading) {
-    return <p style={{ color: 'white' }}>Loading profile...</p>;
+    return <p style={{ color: 'white' }}>{t('profile_page.loading')}</p>;
   }
 
   return (
     <div className="profile-page-container">
       <div className="profile-layout">
-        {/* User Details Card */}
         <div className="profile-card details-card">
           <div className="profile-card-header">
             <VscAccount size={24} />
-            <h2>Personal Information</h2>
+            <h2>{t('profile_page.personal_information')}</h2>
           </div>
           {user ? (
             <div className="details-grid">
-              <div className="detail-item"><span>Full Name</span><p>{user.name} {user.familyName}</p></div>
-              <div className="detail-item"><span>Email</span><p>{user.email}</p></div>
-              <div className="detail-item"><span>CIN</span><p>{user.cin}</p></div>
-              <div className="detail-item"><span>Department</span><p>{user.department}</p></div>
-              <div className="detail-item"><span>Position</span><p>{user.position}</p></div>
-              <div className="detail-item"><span>Join Date</span><p>{new Date(user.joinDate).toLocaleDateString()}</p></div>
+              <div className="detail-item"><span>{t('profile_page.full_name')}</span><p>{user.name} {user.familyName}</p></div>
+              <div className="detail-item"><span>{t('profile_page.email')}</span><p>{user.email}</p></div>
+              <div className="detail-item"><span>{t('profile_page.cin')}</span><p>{user.cin}</p></div>
+              <div className="detail-item"><span>{t('profile_page.department')}</span><p>{user.department}</p></div>
+              <div className="detail-item"><span>{t('profile_page.position')}</span><p>{user.position}</p></div>
+              <div className="detail-item"><span>{t('profile_page.join_date')}</span><p>{new Date(user.joinDate).toLocaleDateString()}</p></div>
             </div>
           ) : (
-            <p>{error || 'Could not load profile information.'}</p>
+            <p>{t('profile_page.error_load_profile')}</p>
           )}
         </div>
 
-        {/* Change Password Card */}
         <div className="profile-card password-card">
           <div className="profile-card-header">
             <VscKey size={24} />
-            <h2>Change Password</h2>
+            <h2>{t('profile_page.change_password_title')}</h2>
           </div>
           <form onSubmit={handleInitiatePasswordChange} className="password-form">
             <div className="form-group">
-              <label htmlFor="old-password">Old Password</label>
+              <label htmlFor="old-password">{t('profile_page.old_password')}</label>
               <input id="old-password" type="password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} className="form-input" required />
             </div>
             <div className="form-group">
-              <label htmlFor="new-password">New Password</label>
+              <label htmlFor="new-password">{t('profile_page.new_password')}</label>
               <input id="new-password" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="form-input" required />
-              <small>Must be at least 8 characters long.</small>
+              <small>{t('profile_page.password_length_rule')}</small>
             </div>
             <div className="form-group">
-              <label htmlFor="confirm-password">Confirm New Password</label>
+              <label htmlFor="confirm-password">{t('profile_page.confirm_new_password')}</label>
               <input id="confirm-password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="form-input" required />
             </div>
 
-            {/* Conditionally render the 2FA input */}
             {show2faInput && (
                  <div className="form-group two-fa-group">
-                    <label htmlFor="2fa-code">Enter 2FA Code to Confirm</label>
+                    <label htmlFor="2fa-code">{t('profile_page.enter_2fa_prompt')}</label>
                     <input id="2fa-code" type="text" value={twoFactorCode} onChange={e => setTwoFactorCode(e.target.value)} className="form-input" style={{textAlign: 'center'}} required />
                 </div>
             )}
@@ -154,11 +150,11 @@ export function ProfilePage() {
                 {show2faInput ? (
                     <button type="button" onClick={handlePasswordChangeSubmit} className="button button-primary" disabled={isPasswordChangeLoading}>
                         <VscSave />
-                        {isPasswordChangeLoading ? 'Saving...' : 'Confirm Change'}
+                        {isPasswordChangeLoading ? t('profile_page.saving_button') : t('profile_page.confirm_change_button')}
                     </button>
                 ) : (
                     <button type="submit" className="button button-primary">
-                        Change Password
+                        {t('profile_page.change_password_button')}
                     </button>
                 )}
             </div>

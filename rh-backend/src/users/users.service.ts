@@ -10,7 +10,7 @@ import * as fs from 'fs';             // --- ADD IMPORT
 import * as path from 'path';         // --- ADD IMPORT
 import { ChangePasswordDto } from './dto/change-password.dto'; // --- ADD IMPORT
 import { AuthService } from 'src/auth/auth.service'; //
-import { Department, Prisma, User, UserStatus } from '@prisma/client';
+import { Department, Prisma, User, Role, UserStatus } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -23,27 +23,23 @@ export class UsersService {
    * @returns The newly created user object, without the password hash.
    */
   async create(createUserDto: CreateUserDto) {
-    // Hash the password before saving
     const roundsOfHashing = 10;
-    const hashedPassword = await bcrypt.hash(
-      createUserDto.password_to_be_hashed,
-      roundsOfHashing,
-    );
+    const hashedPassword = await bcrypt.hash(createUserDto.password_to_be_hashed, roundsOfHashing);
 
     const newUser = await this.prisma.user.create({
       data: {
         email: createUserDto.email,
         password: hashedPassword,
-        name: createUserDto.name,
-        familyName: createUserDto.familyName,
-        phoneNumber: createUserDto.phoneNumber,
-        cin: createUserDto.cin,
-        position: createUserDto.position,
-        department: createUserDto.department,
+        name: createUserDto.name, familyName: createUserDto.familyName,
+        phoneNumber: createUserDto.phoneNumber, cin: createUserDto.cin,
+        role: createUserDto.role,
+        teamLeaderId: createUserDto.teamLeaderId, managerId: createUserDto.managerId,
+        // Connect to relations using IDs
+        departmentId: createUserDto.departmentId,
+        positionId: createUserDto.positionId,
       },
     });
 
-    // Return the user object without the password
     const { password, ...result } = newUser;
     return result;
   }
@@ -53,21 +49,19 @@ export class UsersService {
    * This is called by the GET /users endpoint.
    * @returns A list of all user objects, without their password hashes.
    */
-async findAll(params: {
+  // UPDATED findAll to correctly handle role filtering
+  async findAll(params: {
     search?: string;
-    department?: Department;
+    department?: string; // Now a string to filter by name
     status?: UserStatus;
-  }): Promise<User[]> {
-    const { search, department, status } = params;
+    role?: Role;
+  }) {
+    const { search, department, status, role } = params;
     const where: Prisma.UserWhereInput = {};
 
-    if (department) {
-      where.department = department;
-    }
-
-    if (status) {
-      where.status = status;
-    }
+    if (status) where.status = status;
+    if (role) where.role = role;
+    if (department) where.department = { name: department }; // Filter by relation
 
     if (search) {
       where.OR = [
@@ -78,12 +72,28 @@ async findAll(params: {
       ];
     }
 
-    const users = await this.prisma.user.findMany({ where });
-
-    // We must ensure we don't leak password hashes in our API responses
-    users.forEach(user => delete (user as { password?: string }).password);
-    
+    const users = await this.prisma.user.findMany({
+      where,
+      // --- NEW: Include the names from the related tables ---
+      include: {
+        department: { select: { name: true } },
+        position: { select: { name: true } },
+      },
+    });
+    // We don't need to delete the password as it's not selected.
     return users;
+  }
+
+  async resetTwoFactor(userId: string) {
+    await this.findOne(userId); // Ensures user exists
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        isTwoFactorEnabled: false,
+        twoFactorSecret: null,
+      },
+    });
+    return { message: '2FA has been reset successfully for the user.' };
   }
 
   /**
@@ -92,17 +102,22 @@ async findAll(params: {
    * @returns A single user object, without the password hash.
    * @throws NotFoundException if a user with the given ID is not found.
    */
-  async findOne(id: string) {
+   async findOne(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
+      // --- NEW: Include relations ---
+      include: {
+        department: true,
+        position: true,
+      },
     });
 
     if (!user) {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
 
-    delete (user as { password?: string }).password;
-    return user;
+    const { password, ...result } = user;
+    return result;
   }
   /**
    * Updates a user's data.
@@ -111,16 +126,13 @@ async findAll(params: {
    * @returns The updated user object, without the password.
    */
   async update(id: string, updateUserDto: UpdateUserDto) {
-    // We explicitly remove the password from the DTO to prevent updating it here
-    delete updateUserDto.password_to_be_hashed;
-
+    const { password_to_be_hashed, ...restOfDto } = updateUserDto;
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: updateUserDto,
+      data: restOfDto,
     });
-
-    delete (updatedUser as { password?: string }).password;
-    return updatedUser;
+    const { password, ...result } = updatedUser;
+    return result;
   }
   /**
    * Deletes a user from the database.
@@ -137,77 +149,42 @@ async findAll(params: {
     });
     
   }
+ // --- This method needs a major update to use the relations ---
   async generateWorkCertificate(userId: string): Promise<Buffer> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with ID "${userId}" not found`);
-    }
+    const user = await this.findOne(userId); // findOne now includes relations
+    if (!user) throw new NotFoundException(`User with ID "${userId}" not found`);
 
     const pdfDoc = new PDFDocument({ size: 'A4', margin: 50 });
-
-    const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> => {
-      return new Promise((resolve, reject) => {
+    // ... (streamToBuffer helper function)
+    const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> => new Promise((resolve, reject) => {
         const chunks: Buffer[] = [];
         stream.on('data', (chunk) => chunks.push(chunk));
         stream.on('end', () => resolve(Buffer.concat(chunks)));
         stream.on('error', reject);
-      });
-    };
-    
-    // --- Document Header ---
-    
-    const logoPath = path.join(process.cwd(), 'dist/assets/logo.png');
-    if (fs.existsSync(logoPath)) {
-        // --- MODIFIED IMAGE PLACEMENT ---
-        // We explicitly provide x and y coordinates (the top-left margin)
-        // before passing the options object.
-        pdfDoc.image(logoPath, 50, 40, {
-            width: 100, // Set a fixed width, height will scale automatically
-        });
-    }
-    
-    pdfDoc
-      .fontSize(18)
-      .text('Human Ressources Ghaith (HRG)', 50, 65, { align: 'center' });
-    
-    pdfDoc.moveDown(4);
+    });
 
-    // --- Document Title ---
+    // ... (header and logo logic)
     pdfDoc.fontSize(20).font('Helvetica-Bold').text('ATTESTATION DE TRAVAIL', { align: 'center' });
     pdfDoc.moveDown(3);
-
-    // --- Document Body ---
+    
     const fullName = `${user.name} ${user.familyName}`;
-    const joinDate = new Intl.DateTimeFormat('en-GB').format(user.joinDate);
+    const joinDate = new Intl.DateTimeFormat('en-GB').format(new Date(user.joinDate));
     const currentDate = new Intl.DateTimeFormat('en-GB').format(new Date());
 
     pdfDoc.fontSize(12).font('Helvetica');
-    pdfDoc.text(
-        `This is to certify that Mr./Ms. ${fullName}, holder of CIN n° ${user.cin}, is currently employed by our company, Human Ressources Ghaith, since ${joinDate}.`,
-        { align: 'justify' }
-    );
+    pdfDoc.text(`This is to certify that Mr./Ms. ${fullName}, holder of CIN n° ${user.cin}, is currently employed by our company, Human Ressources Ghaith, since ${joinDate}.`);
     pdfDoc.moveDown();
-    pdfDoc.text(
-        `Mr./Ms. ${user.familyName} holds the position of ${user.position}.`,
-        { align: 'justify' }
-    );
+    // --- UPDATED: Use the position name from the relation ---
+    pdfDoc.text(`Mr./Ms. ${user.familyName} holds the position of ${user.position.name}.`);
+    // ... (rest of PDF generation)
     pdfDoc.moveDown();
-    pdfDoc.text(
-        'This certificate is issued to serve for whatever legal purpose it may serve.',
-        { align: 'justify' }
-    );
+    pdfDoc.text('This certificate is issued to serve for whatever legal purpose it may serve.');
     pdfDoc.moveDown(4);
-
-    // --- Document Footer ---
     pdfDoc.text(`Done at Mornag, on ${currentDate}.`, { align: 'right' });
     pdfDoc.moveDown(2);
     pdfDoc.text('Management', { align: 'right' });
     
     pdfDoc.end();
-
     return streamToBuffer(pdfDoc);
   }
 

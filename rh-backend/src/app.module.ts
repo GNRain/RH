@@ -8,6 +8,9 @@ import { ConfigModule } from '@nestjs/config'; // --- ADD IMPORT
 import { MailModule } from './mail/mail.module';   // --- ADD IMPORT
 import { LeaveModule } from './leave/leave.module';
 import { NotificationModule } from './notifications/notification.module';
+import { DepartmentsModule } from './departments/departments.module';
+import { PositionsModule } from './positions/positions.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   // --- MODIFIED IMPORTS ---
@@ -19,6 +22,9 @@ import { NotificationModule } from './notifications/notification.module';
     MailModule,
     LeaveModule,
     NotificationModule,
+    DepartmentsModule,
+    PositionsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService], // UsersService was correctly removed in the previous step
