@@ -14,7 +14,8 @@ import { ProfilePage } from './pages/ProfilePage/ProfilePage';
 import { LeaveManagementPage } from './pages/LeaveManagementPage/LeaveManagementPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage/ResetPasswordPage';
 import { EmployeesPage } from './pages/EmployeesPage/EmployeesPage';
-import { CompanySettingsPage } from './pages/CompanySettingsPage/CompanySettingsPage'; // --- NEW IMPORT ---
+import { CompanySettingsPage } from './pages/CompanySettingsPage/CompanySettingsPage';
+import { SchedulePage } from './pages/SchedulePage/SchedulePage';
 
 import './App.css'; 
 
@@ -79,6 +80,7 @@ function App() {
   const navItems = [
     { path: '/home', label: t('sidebar.home') },
     { path: '/leave', label: t('sidebar.my_leave') },
+    { path: '/schedule', label: t('sidebar.schedule') },
     ...(user && approverRoles.includes(user.role) ? [{ path: '/leave-management', label: t('sidebar.leave_management') }] : []),
     ...(user && hrRoles.includes(user.role) ? [{ path: '/employees', label: t('sidebar.employees') }] : []),
     { path: '/documents', label: t('sidebar.documents') },
@@ -108,6 +110,7 @@ function App() {
         <main className="page-content-container">
           <Routes>
             <Route path="/home" element={<HomePage />} />
+            <Route path="/schedule" element={<SchedulePage />} />
             <Route path="/leave" element={<LeavePage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/profile" element={<ProfilePage />} />

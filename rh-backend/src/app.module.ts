@@ -11,6 +11,8 @@ import { NotificationModule } from './notifications/notification.module';
 import { DepartmentsModule } from './departments/departments.module';
 import { PositionsModule } from './positions/positions.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ShiftsModule } from './shifts/shifts.module';
+import { SchedulesModule } from './schedules/schedules.module';
 
 @Module({
   // --- MODIFIED IMPORTS ---
@@ -25,6 +27,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
     DepartmentsModule,
     PositionsModule,
     DashboardModule,
+    ShiftsModule,
+    SchedulesModule,
   ],
   controllers: [AppController],
   providers: [AppService], // UsersService was correctly removed in the previous step

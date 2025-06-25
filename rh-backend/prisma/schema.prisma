@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- NEW Enums ---
+// --- FIX: Correctly formatted enums ---
 enum Gender {
   MALE
   FEMALE
@@ -23,7 +23,6 @@ enum LeaveType {
   PERSONAL
 }
 
-// Existing Enums
 enum UserStatus {
   ACTIVE
   INACTIVE
@@ -51,41 +50,62 @@ enum ApproverType {
   DHR
 }
 
+// --- DATA MODELS ---
+
 model Department {
-  id    String @id @default(cuid())
-  name  String @unique
-  users User[]
+  id        String   @id @default(cuid())
+  name      String   @unique
+  users     User[]
+  schedules Schedule[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Position {
-  id    String @id @default(cuid())
-  name  String @unique
-  users User[]
+  id        String   @id @default(cuid())
+  name      String   @unique
+  users     User[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model Shift {
+  id        String   @id @default(cuid())
+  name      String
+  startTime String
+  endTime   String
+  color     String   // Added for frontend styling
+  schedules Schedule[]
+}
+
+
+model Schedule {
+  id           String     @id @default(cuid())
+  date         DateTime   @db.Date
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  shiftId      String
+  shift        Shift     @relation(fields: [shiftId], references: [id])
+  @@unique([date, departmentId])
+}
+
 model User {
-  id                   String  @id @default(cuid())
+  id                   String     @id @default(cuid())
   password             String
-  passwordResetToken   String? @unique
+  passwordResetToken   String?    @unique
   passwordResetExpires DateTime?
   name                 String
   familyName           String
-  phoneNumber          String  @unique
-  email                String  @unique
-  cin                  String  @unique
-  joinDate             DateTime @default(now())
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  isTwoFactorEnabled   Boolean @default(false)
+  phoneNumber          String     @unique
+  email                String     @unique
+  cin                  String     @unique
+  joinDate             DateTime   @default(now())
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  isTwoFactorEnabled   Boolean    @default(false)
   twoFactorSecret      String?
   status               UserStatus @default(ACTIVE)
-  role                 Role @default(EMPLOYEE)
-
-  // --- NEW FIELDS FOR ANALYTICS ---
+  role                 Role       @default(EMPLOYEE)
   birthDate            DateTime?
   terminationDate      DateTime?
   gender               Gender?
@@ -113,10 +133,7 @@ model LeaveRequest {
   toDate            DateTime
   reason            String
   overallStatus     LeaveStatus @default(PENDING)
-  
-  // --- NEW FIELD FOR ANALYTICS ---
   type              LeaveType   @default(VACATION)
-
   approvals         LeaveApproval[]
   currentApproverId String?
   userId            String
@@ -125,7 +142,6 @@ model LeaveRequest {
   updatedAt         DateTime    @updatedAt
 }
 
-// Other models remain unchanged
 model Notification {
   id        String   @id @default(cuid())
   message   String

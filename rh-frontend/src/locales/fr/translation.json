@@ -244,5 +244,13 @@
         "empty_leave": "Tout le monde est là !",
         "empty_anniversaries": "Aucun anniversaire à venir."
     }
-}
+  },
+  "schedule_page": {
+    "title": "Planning des Équipes",
+    "subtitle": "Visualisez et gérez le planning des shift pour tous les départements.",
+    "apply_changes": "Appliquer les changements",
+    "cancel": "Annuler",
+    "changes_applied": "Le planning a été mis à jour avec succès !",
+    "changes_failed": "Échec de l'application des modifications."
+  }
 }

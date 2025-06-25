@@ -1,0 +1,6 @@
+.schedule-page-container { color: var(--text-primary); }
+.schedule-page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.schedule-page-header .actions button { margin-left: 1rem; }
+.calendar-container { --fc-bg-event-color: #5227FF; --fc-border-color: #374151; --fc-daygrid-event-dot-width: 8px; --fc-today-bg-color: rgba(82, 39, 255, 0.15); color: var(--text-primary); }
+.fc-event { cursor: grab; }
+.fc-event:active { cursor: grabbing; }

@@ -243,5 +243,13 @@
         "empty_leave": "Everyone is here!",
         "empty_anniversaries": "No upcoming anniversaries."
     }
-}
+  },
+   "schedule_page": {
+    "title": "Team Schedule",
+    "subtitle": "View and manage the daily shift schedule for all departments.",
+    "apply_changes": "Apply Changes",
+    "cancel": "Cancel",
+    "changes_applied": "Schedule updated successfully!",
+    "changes_failed": "Failed to apply changes."
+  }
 }
