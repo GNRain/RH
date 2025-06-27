@@ -251,6 +251,11 @@
     "apply_changes": "Appliquer les changements",
     "cancel": "Annuler",
     "changes_applied": "Le planning a été mis à jour avec succès !",
-    "changes_failed": "Échec de l'application des modifications."
+    "changes_failed": "Échec de l'application des modifications.",
+    "modal": {
+      "title": "Département {{departmentName}}",
+      "loading": "Chargement des détails de l'équipe...",
+      "on_leave": "En Congé"
+    }
   }
 }

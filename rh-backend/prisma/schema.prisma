@@ -10,19 +10,132 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- FIX: Correctly formatted enums ---
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
+model User {
+  id                    String    @id @default(cuid())
+  name                  String
+  familyName            String
+  phoneNumber           String    @unique
+  email                 String    @unique
+  cin                   String    @unique
+  password              String
+  joinDate              DateTime  @default(now())
+  birthDate             DateTime?
+  gender                Gender?
+  terminationDate       DateTime?
+  status                UserStatus @default(ACTIVE)
+
+  // Two-Factor Authentication
+  isTwoFactorEnabled    Boolean   @default(false)
+  twoFactorSecret       String?
+
+  // Password Reset
+  passwordResetToken    String?   @unique
+  passwordResetExpires  DateTime?
+
+  // Relations
+  departmentId          String
+  department            Department @relation(fields: [departmentId], references: [id])
+  positionId            String
+  position              Position   @relation(fields: [positionId], references: [id])
+  role                  Role      @default(EMPLOYEE)
+
+  // Hierarchy
+  teamLeaderId          String?
+  teamLeader            User?      @relation("TeamMembers", fields: [teamLeaderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  teamMembers           User[]     @relation("TeamMembers")
+  managerId             String?
+  manager               User?      @relation("ManagedMembers", fields: [managerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  managedMembers        User[]     @relation("ManagedMembers")
+
+  // Leave and Notifications
+  leaveRequests         LeaveRequest[]
+  notifications         Notification[]
+  approvals             LeaveApproval[] @relation("ApproverRelation")
 }
 
-enum LeaveType {
-  VACATION
-  SICK_LEAVE
-  PERSONAL
+model Department {
+  id             String    @id @default(cuid())
+  name           String    @unique
+  color          String    @default("#CCCCCC") // FIX: Added default value
+  users          User[]
+  overrides      ScheduleOverride[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // NEW: Default shift for this department
+  defaultShiftId String?
+  defaultShift   Shift?    @relation(fields: [defaultShiftId], references: [id])
 }
 
+model Position {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LeaveRequest {
+  id              String         @id @default(cuid())
+  fromDate        DateTime
+  toDate          DateTime
+  reason          String
+  type            LeaveType      @default(VACATION)
+  overallStatus   LeaveStatus    @default(PENDING)
+  userId          String
+  user            User           @relation(fields: [userId], references: [id])
+  approvals       LeaveApproval[]
+  currentApproverId String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model LeaveApproval {
+  id              String        @id @default(cuid())
+  status          LeaveStatus   @default(PENDING)
+  comment         String?
+  step            Int
+  leaveRequestId  String
+  leaveRequest    LeaveRequest  @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
+  approverId      String?
+  approver        User?         @relation("ApproverRelation", fields: [approverId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approverType    ApproverType
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Shift {
+  id          String    @id @default(cuid())
+  name        String
+  startTime   String
+  endTime     String
+  color       String
+  overrides   ScheduleOverride[]
+  departments Department[] // Relation for default shifts
+}
+
+model ScheduleOverride {
+  id           String     @id @default(cuid())
+  date         DateTime   @db.Date
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  shiftId      String
+  shift        Shift      @relation(fields: [shiftId], references: [id])
+
+  @@unique([date, departmentId])
+}
+
+
+// --- ENUMS ---
 enum UserStatus {
   ACTIVE
   INACTIVE
@@ -34,6 +147,12 @@ enum Role {
   MANAGER
   HR
   DHR
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }
 
 enum LeaveStatus {
@@ -50,117 +169,8 @@ enum ApproverType {
   DHR
 }
 
-// --- DATA MODELS ---
-
-model Department {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  users     User[]
-  schedules Schedule[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Position {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  users     User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Shift {
-  id        String   @id @default(cuid())
-  name      String
-  startTime String
-  endTime   String
-  color     String   // Added for frontend styling
-  schedules Schedule[]
-}
-
-
-model Schedule {
-  id           String     @id @default(cuid())
-  date         DateTime   @db.Date
-  departmentId String
-  department   Department @relation(fields: [departmentId], references: [id])
-  shiftId      String
-  shift        Shift     @relation(fields: [shiftId], references: [id])
-  @@unique([date, departmentId])
-}
-
-model User {
-  id                   String     @id @default(cuid())
-  password             String
-  passwordResetToken   String?    @unique
-  passwordResetExpires DateTime?
-  name                 String
-  familyName           String
-  phoneNumber          String     @unique
-  email                String     @unique
-  cin                  String     @unique
-  joinDate             DateTime   @default(now())
-  createdAt            DateTime   @default(now())
-  updatedAt            DateTime   @updatedAt
-  isTwoFactorEnabled   Boolean    @default(false)
-  twoFactorSecret      String?
-  status               UserStatus @default(ACTIVE)
-  role                 Role       @default(EMPLOYEE)
-  birthDate            DateTime?
-  terminationDate      DateTime?
-  gender               Gender?
-
-  departmentId         String
-  department           Department @relation(fields: [departmentId], references: [id])
-  positionId           String
-  position             Position   @relation(fields: [positionId], references: [id])
-  
-  teamLeaderId         String?
-  managerId            String?
-  teamLeader           User?      @relation("TeamLead", fields: [teamLeaderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  manager              User?      @relation("Manager", fields: [managerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  teamMembers          User[]     @relation("TeamLead")
-  managedUsers         User[]     @relation("Manager")
-
-  leaveRequests        LeaveRequest[]
-  notifications        Notification[]
-  leaveApprovals       LeaveApproval[]
-}
-
-model LeaveRequest {
-  id                String      @id @default(cuid())
-  fromDate          DateTime
-  toDate            DateTime
-  reason            String
-  overallStatus     LeaveStatus @default(PENDING)
-  type              LeaveType   @default(VACATION)
-  approvals         LeaveApproval[]
-  currentApproverId String?
-  userId            String
-  user              User        @relation(fields: [userId], references: [id])
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-}
-
-model Notification {
-  id        String   @id @default(cuid())
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model LeaveApproval {
-  id             String       @id @default(cuid())
-  status         LeaveStatus  @default(PENDING)
-  comment        String?
-  step           Int
-  leaveRequestId String
-  leaveRequest   LeaveRequest @relation(fields: [leaveRequestId], references: [id], onDelete: Cascade)
-  approverId     String?
-  approver       User?        @relation(fields: [approverId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  approverType   ApproverType
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+enum LeaveType {
+  VACATION
+  SICK_LEAVE
+  PERSONAL
 }

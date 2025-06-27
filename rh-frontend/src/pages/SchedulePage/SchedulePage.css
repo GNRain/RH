@@ -1,6 +1,191 @@
-.schedule-page-container { color: var(--text-primary); }
-.schedule-page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.schedule-page-header .actions button { margin-left: 1rem; }
-.calendar-container { --fc-bg-event-color: #5227FF; --fc-border-color: #374151; --fc-daygrid-event-dot-width: 8px; --fc-today-bg-color: rgba(82, 39, 255, 0.15); color: var(--text-primary); }
-.fc-event { cursor: grab; }
-.fc-event:active { cursor: grabbing; }
+.schedule-page-container {
+  color: var(--text-primary);
+  width: 100%;
+  padding: 1rem 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80px); /* Full viewport height minus header */
+}
+
+.schedule-page-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.week-navigation {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background-color: var(--bg-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+}
+
+.week-range-legend {
+  font-size: 1.125rem;
+  font-weight: 600;
+  min-width: 220px;
+  text-align: center;
+}
+
+.nav-arrow {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-arrow:hover {
+  background-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.department-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  background-color: var(--bg-secondary);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.calendar-container {
+  --fc-border-color: var(--border-color);
+  --fc-daygrid-event-dot-width: 8px;
+  --fc-today-bg-color: rgba(82, 39, 255, 0.05);
+  --fc-event-border-color: transparent;
+  color: var(--text-primary);
+  flex-grow: 1;
+  min-height: 0;
+}
+
+/* Custom event styling */
+.custom-event {
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  border-left: 4px solid; /* Border color set by inline style */
+  font-size: 1rem;
+}
+
+.fc-v-event {
+  border-radius: 8px;
+  background-color: rgba(var(--fc-event-bg-color-rgb), 0.15) !important;
+}
+
+.event-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+.event-time {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  color: var(--text-secondary);
+}
+
+.fc .fc-timegrid-col.fc-day-today {
+  background-color: var(--fc-today-bg-color);
+}
+
+.fc .fc-timegrid-col-frame {
+  border-left: 1px dashed var(--border-color);
+}
+.fc .fc-timegrid-col:first-of-type .fc-timegrid-col-frame {
+  border-left: none;
+}
+.fc-theme-standard .fc-timegrid-slots tr > td {
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Modal Content Styles */
+.department-modal-content {
+  color: var(--text-primary);
+}
+.department-modal-content h4 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  font-size: 0.9rem;
+}
+.employee-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 250px;
+  overflow-y: auto;
+}
+.employee-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.employee-list li:last-child {
+  border-bottom: none;
+}
+.badges {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+.status-pill {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+.status-pill.on-leave {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+.status-pill.active {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+.status-pill.inactive {
+    background-color: rgba(156, 163, 175, 0.1);
+    color: #6b7280;
+}

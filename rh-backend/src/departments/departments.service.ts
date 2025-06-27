@@ -12,7 +12,13 @@ export class DepartmentsService {
   }
 
   findAll() {
-    return this.prisma.department.findMany({ orderBy: { name: 'asc' } });
+    return this.prisma.department.findMany({
+      orderBy: { name: 'asc' },
+      // Include the color and default shift details
+      include: {
+        defaultShift: true,
+      },
+    });
   }
 
   update(id: string, updateDepartmentDto: UpdateDepartmentDto) {

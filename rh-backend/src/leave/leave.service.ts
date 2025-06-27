@@ -3,7 +3,6 @@
 import { Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLeaveRequestDto } from './dto/create-leave.dto';
-// FIX: Added 'LeaveStatus' to the import list
 import { ApproverType, Prisma, Role, User, UserStatus, LeaveStatus } from '@prisma/client';
 import { NotificationService } from 'src/notifications/notification.service';
 import { UpdateLeaveActionDto } from './dto/update-leave-action.dto';
@@ -39,7 +38,7 @@ export class LeaveService {
 
     const totalEarnedLeave = Math.floor(workDays / 10);
     const daysTaken = user.leaveRequests.reduce((acc, req) => {
-      const duration = (req.toDate.getTime() - req.fromDate.getTime()) / (1000 * 3600 * 24) + 1;
+      const duration = (new Date(req.toDate).getTime() - new Date(req.fromDate).getTime()) / (1000 * 3600 * 24) + 1;
       return acc + Math.round(duration);
     }, 0);
 
@@ -98,19 +97,39 @@ export class LeaveService {
         throw new BadRequestException('Invalid user role for creating leave requests.');
     }
 
-    return this.prisma.$transaction(async (tx) => {
-      const leaveRequest = await tx.leaveRequest.create({ data: { fromDate: new Date(createDto.fromDate), toDate: new Date(createDto.toDate), reason: createDto.reason, userId: requester.id, currentApproverId: initialApproverId, }});
-      await tx.leaveApproval.createMany({ data: approvalChainConfig.map(chainStep => ({ leaveRequestId: leaveRequest.id, step: chainStep.step, approverType: chainStep.approverType, approverId: chainStep.approverId, }))});
-      if (initialNotificationTarget) {
-        const notificationMessage = `A new leave request from ${requester.name} ${requester.familyName} requires your action.`;
-        if (initialNotificationTarget.type === 'user') {
-          await this.notificationService.createForUser(initialNotificationTarget.id, notificationMessage);
-        } else if (initialNotificationTarget.type === 'department') {
-          await this.notificationService.createForDepartment(initialNotificationTarget.id, notificationMessage);
-        }
-      }
-      return leaveRequest;
+    // --- FIX: Transaction only handles the essential database writes ---
+    const leaveRequest = await this.prisma.$transaction(async (tx) => {
+      const newLeaveRequest = await tx.leaveRequest.create({ 
+          data: { 
+              fromDate: new Date(createDto.fromDate), 
+              toDate: new Date(createDto.toDate), 
+              reason: createDto.reason, 
+              userId: requester.id, 
+              currentApproverId: initialApproverId, 
+          }
+      });
+      await tx.leaveApproval.createMany({ 
+          data: approvalChainConfig.map(chainStep => ({ 
+              leaveRequestId: newLeaveRequest.id, 
+              step: chainStep.step, 
+              approverType: chainStep.approverType, 
+              approverId: chainStep.approverId, 
+          }))
+      });
+      return newLeaveRequest;
     });
+
+    // --- FIX: Notification logic is now outside the transaction ---
+    if (initialNotificationTarget) {
+      const notificationMessage = `A new leave request from ${requester.name} ${requester.familyName} requires your action.`;
+      if (initialNotificationTarget.type === 'user') {
+        await this.notificationService.createForUser(initialNotificationTarget.id, notificationMessage);
+      } else if (initialNotificationTarget.type === 'department') {
+        await this.notificationService.createForDepartment('HR', notificationMessage); // Target HR specifically
+      }
+    }
+
+    return leaveRequest;
   }
 
   async processApprovalAction(leaveRequestId: string, actingUserId: string, actionDto: UpdateLeaveActionDto) {

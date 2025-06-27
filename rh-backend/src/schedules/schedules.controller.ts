@@ -6,6 +6,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { GetScheduleDto } from './dto/get-schedule.dto';
 import { BulkUpdateScheduleDto } from './dto/bulk-update-schedule.dto';
+import { GeneratedScheduleDto } from './dto/schedule.dto'; // <-- IMPORT the new DTO
 
 @Controller('schedules')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -14,7 +15,8 @@ export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) {}
 
   @Get()
-  findAll(@Query() query: GetScheduleDto) {
+  // FIX: Explicitly define the return type of the method
+  findAll(@Query() query: GetScheduleDto): Promise<GeneratedScheduleDto[]> {
     return this.schedulesService.findAll(query);
   }
 

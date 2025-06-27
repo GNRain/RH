@@ -250,6 +250,11 @@
     "apply_changes": "Apply Changes",
     "cancel": "Cancel",
     "changes_applied": "Schedule updated successfully!",
-    "changes_failed": "Failed to apply changes."
+    "changes_failed": "Failed to apply changes.",
+    "modal": {
+      "title": "{{departmentName}} Department",
+      "loading": "Loading team details...",
+      "on_leave": "On Leave"
+    }
   }
 }

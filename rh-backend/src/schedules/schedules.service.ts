@@ -3,6 +3,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { GetScheduleDto } from './dto/get-schedule.dto';
 import { BulkUpdateScheduleDto } from './dto/bulk-update-schedule.dto';
 import { NotificationService } from 'src/notifications/notification.service';
+import { eachDayOfInterval, startOfDay } from 'date-fns';
+import { GeneratedScheduleDto } from './dto/schedule.dto';
 
 @Injectable()
 export class SchedulesService {
@@ -11,37 +13,103 @@ export class SchedulesService {
         private notificationService: NotificationService
     ) {}
 
-    findAll(query: GetScheduleDto) {
-        return this.prisma.schedule.findMany({
+    async findAll(query: GetScheduleDto): Promise<GeneratedScheduleDto[]> {
+        const startDate = new Date(query.startDate);
+        const endDate = new Date(query.endDate);
+
+        // FIX: Fetch all departments EXCEPT 'HR'
+        const departments = await this.prisma.department.findMany({
+            where: {
+                name: {
+                    not: 'HR'
+                }
+            },
+            include: {
+                defaultShift: true
+            }
+        });
+
+        const overrides = await this.prisma.scheduleOverride.findMany({
             where: {
                 date: {
-                    gte: new Date(query.startDate),
-                    lte: new Date(query.endDate),
+                    gte: startDate,
+                    lte: endDate,
                 },
             },
             include: {
-                department: { select: { id: true, name: true } },
-                shift: { select: { id: true, name: true, startTime: true, endTime: true } },
-            },
+                shift: true
+            }
         });
+        
+        const overrideMap = new Map<string, any>();
+        for (const override of overrides) {
+            const key = `${override.date.toISOString().split('T')[0]}-${override.departmentId}`;
+            overrideMap.set(key, override);
+        }
+        
+        const schedule: GeneratedScheduleDto[] = [];
+        const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
+
+        for (const date of dateRange) {
+            const dateStr = date.toISOString().split('T')[0];
+            for (const department of departments) {
+                const overrideKey = `${dateStr}-${department.id}`;
+                const override = overrideMap.get(overrideKey);
+
+                const shift = override ? override.shift : department.defaultShift;
+                if (!shift) continue;
+
+                schedule.push({
+                    id: override ? override.id : `${department.id}-${dateStr}`,
+                    date: dateStr,
+                    department: {
+                        id: department.id,
+                        name: department.name,
+                    },
+                    shift: {
+                        id: shift.id,
+                        name: shift.name,
+                        startTime: shift.startTime,
+                        endTime: shift.endTime,
+                        color: department.color
+                    },
+                });
+            }
+        }
+
+        return schedule;
     }
 
     async bulkUpdate(bulkUpdateDto: BulkUpdateScheduleDto) {
-        const updates = bulkUpdateDto.updates.map(update => 
-            this.prisma.schedule.update({
-                where: { id: update.scheduleId },
-                data: { shiftId: update.newShiftId },
-                include: { shift: true }
-            })
-        );
+        const { updates } = bulkUpdateDto;
 
-        const results = await this.prisma.$transaction(updates);
+        const transactions = updates.map(update => {
+            const date = startOfDay(new Date(update.date));
+            return this.prisma.scheduleOverride.upsert({
+                where: {
+                    date_departmentId: {
+                        date: date,
+                        departmentId: update.departmentId
+                    }
+                },
+                update: { shiftId: update.newShiftId },
+                create: {
+                    date: date,
+                    departmentId: update.departmentId,
+                    shiftId: update.newShiftId
+                },
+                include: {
+                    shift: true,
+                    department: true,
+                }
+            });
+        });
 
-        // Send notifications
-        for (const [index, result] of results.entries()) {
-            const originalUpdate = bulkUpdateDto.updates[index];
-            const message = `Your shift for ${new Date(result.date).toLocaleDateString()} has been changed to the <span class="math-inline">\{result\.shift\.name\} \(</span>{result.shift.startTime} - ${result.shift.endTime}).`;
-            await this.notificationService.createForDepartment(originalUpdate.originalDepartmentId, message);
+        const results = await this.prisma.$transaction(transactions);
+
+        for (const result of results) {
+            const message = `Your shift for ${result.date.toLocaleDateString()} has been changed to the ${result.shift.name} (${result.shift.startTime} - ${result.shift.endTime}).`;
+            await this.notificationService.createForDepartment(result.department.name, message);
         }
 
         return { message: 'Schedule updated successfully.' };
