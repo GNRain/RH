@@ -11,44 +11,28 @@ import './SchedulePage.css';
 
 const API_URL = 'http://localhost:3000';
 
-// --- Type Definitions ---
+// --- Type Definitions (no changes here) ---
 interface DecodedToken {
   role: 'HR' | 'DHR';
 }
-
 interface User {
-  id: string;
-  name: string;
-  familyName: string;
-  status: 'ACTIVE' | 'INACTIVE';
+  id: string; name: string; familyName: string; status: 'ACTIVE' | 'INACTIVE';
   role: 'EMPLOYEE' | 'TEAM_LEADER' | 'MANAGER' | 'HR' | 'DHR';
   leaveRequests: { fromDate: string; toDate: string }[];
 }
-
 interface Department {
-    id: string;
-    name: string;
-    color: string;
+    id: string; name: string; color: string;
 }
-
 interface ScheduleEvent {
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-  allDay: boolean;
-  backgroundColor: string;
-  borderColor: string;
+  id: string; title: string; start: string; end: string; allDay: boolean;
+  backgroundColor: string; borderColor: string;
   extendedProps: {
-    shiftId: string;
-    shiftName: string;
-    departmentId: string;
-    departmentName: string;
-    departmentColor: string;
+    shiftId: string; shiftName: string; departmentId: string;
+    departmentName: string; departmentColor: string;
   };
 }
 
-// --- Legend Component ---
+// --- Legend Component (no changes here) ---
 const DepartmentLegend = ({ departments }: { departments: Department[] }) => (
     <div className="department-legend">
         {departments.map(dept => (
@@ -66,7 +50,7 @@ export function SchedulePage() {
   const { t, i18n } = useTranslation();
   const calendarRef = useRef<FullCalendar>(null);
 
-  // State
+  // State (no changes here)
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [weekRange, setWeekRange] = useState('');
@@ -85,28 +69,41 @@ export function SchedulePage() {
         params: { startDate: start.toISOString(), endDate: end.toISOString() },
       });
 
-      const formattedEvents = response.data.map((item: any) => ({
-        id: item.id,
-        title: item.department.name,
-        start: `${item.date}T${item.shift.startTime}`,
-        end: `${item.date}T${item.shift.endTime === '00:00' ? '24:00' : item.shift.endTime}`,
-        allDay: false,
-        backgroundColor: item.department.color, // Use department color
-        borderColor: item.department.color,
-        extendedProps: {
-          shiftId: item.shift.id,
-          shiftName: item.shift.name,
-          departmentId: item.department.id,
-          departmentName: item.department.name,
-          departmentColor: item.department.color,
-        },
-      }));
+      const formattedEvents = response.data.map((item: any) => {
+        const startDate = new Date(`${item.date}T${item.shift.startTime}:00`);
+        let endDate = new Date(`${item.date}T${item.shift.endTime}:00`);
+
+        if (item.shift.endTime <= item.shift.startTime) {
+          endDate.setDate(endDate.getDate() + 1);
+        }
+
+        return {
+          id: item.id,
+          title: item.department.name,
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+          allDay: false,
+          // --- FIX: Use the color from item.shift instead of item.department ---
+          backgroundColor: item.shift.color,
+          borderColor: item.shift.color,
+          extendedProps: {
+            shiftId: item.shift.id,
+            shiftName: item.shift.name,
+            departmentId: item.department.id,
+            departmentName: item.department.name,
+            // --- FIX: Use the color from item.shift here as well ---
+            departmentColor: item.shift.color,
+          },
+        };
+      });
+
       setEvents(formattedEvents);
     } catch (error) {
       console.error("Failed to fetch schedule", error);
     }
   }, []);
 
+  // No changes to the rest of the file...
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (token) {
@@ -126,7 +123,6 @@ export function SchedulePage() {
     fetchDepartments();
   }, []);
   
-  // --- Calendar Handlers ---
   const updateWeekRange = useCallback((start: Date, end: Date) => {
     const formattedStart = start.toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit' });
     const formattedEnd = end.toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit' });
@@ -166,7 +162,6 @@ export function SchedulePage() {
     const draggedEvent = events.find(e => e.id === event.id);
     if (!draggedEvent) return revert();
 
-    // FIX: Robustly find the event that was at the drop location
     const targetEvent = events.find(e =>
       e.id !== draggedEvent.id &&
       new Date(e.start).getTime() === new Date(event.start).getTime()
@@ -177,8 +172,8 @@ export function SchedulePage() {
     }
     
     const updates = [
-        { date: draggedEvent.start.split('T')[0], departmentId: draggedEvent.extendedProps.departmentId, newShiftId: targetEvent.extendedProps.shiftId },
-        { date: targetEvent.start.split('T')[0], departmentId: targetEvent.extendedProps.departmentId, newShiftId: draggedEvent.extendedProps.shiftId },
+        { date: new Date(draggedEvent.start).toISOString().split('T')[0], departmentId: draggedEvent.extendedProps.departmentId, newShiftId: targetEvent.extendedProps.shiftId },
+        { date: new Date(targetEvent.start).toISOString().split('T')[0], departmentId: targetEvent.extendedProps.departmentId, newShiftId: draggedEvent.extendedProps.shiftId },
     ];
 
     try {
@@ -262,7 +257,7 @@ export function SchedulePage() {
           allDaySlot={false}
           slotMinTime="00:00:00"
           slotMaxTime="24:00:00"
-          slotDuration="08:00:00"
+          slotDuration="01:00:00"
           snapDuration="01:00:00"
           events={events}
           editable={isHrRole}
@@ -270,9 +265,8 @@ export function SchedulePage() {
           eventClick={handleEventClick}
           datesSet={handleDatesSet}
           eventContent={renderEventContent}
-          slotLabelFormat={{ hour: 'numeric', omitZeroMinute: true }}
+          slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
           slotLabelInterval={{hours: 1}}
-          slotMinHeight={120} // FIX: Enforce larger, uniform row height
         />
       </div>
 

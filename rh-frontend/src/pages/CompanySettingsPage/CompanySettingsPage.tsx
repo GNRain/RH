@@ -7,34 +7,57 @@ import './CompanySettingsPage.css';
 
 const API_URL = 'http://localhost:3000';
 
-type DataItem = {
+// Add Shift and updated Department types
+type Shift = {
+  id: string;
+  name: string;
+}
+type Department = {
+  id: string;
+  name: string;
+  color: string;
+  defaultShiftId: string | null;
+};
+type Position = {
   id: string;
   name: string;
 };
 
+
 export function CompanySettingsPage() {
   const { t } = useTranslation();
-  const [departments, setDepartments] = useState<DataItem[]>([]);
-  const [positions, setPositions] = useState<DataItem[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modal State
+  // --- Modal State ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [modalType, setModalType] = useState<'department' | 'position'>('department');
-  const [currentItem, setCurrentItem] = useState<DataItem | null>(null);
-  const [itemName, setItemName] = useState('');
+  const [currentItem, setCurrentItem] = useState<Department | Position | null>(null);
+  
+  // State for the department form
+  const [deptName, setDeptName] = useState('');
+  const [deptColor, setDeptColor] = useState('#CCCCCC');
+  const [defaultShiftId, setDefaultShiftId] = useState<string | undefined>(undefined);
+  
+  // State for the position form
+  const [posName, setPosName] = useState('');
+
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('access_token');
-      const [deptRes, posRes] = await Promise.all([
+      const [deptRes, posRes, shiftRes] = await Promise.all([
         axios.get(`${API_URL}/departments`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_URL}/positions`, { headers: { Authorization: `Bearer ${token}` } })
+        axios.get(`${API_URL}/positions`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/shift`, { headers: { Authorization: `Bearer ${token}` } })
       ]);
       setDepartments(deptRes.data);
       setPositions(posRes.data);
+      setShifts(shiftRes.data);
     } catch (error) {
       console.error("Failed to fetch settings data", error);
     } finally {
@@ -46,30 +69,50 @@ export function CompanySettingsPage() {
     fetchData();
   }, []);
 
-  const openModal = (mode: 'add' | 'edit', type: 'department' | 'position', item: DataItem | null = null) => {
+  const openModal = (mode: 'add' | 'edit', type: 'department' | 'position', item: Department | Position | null = null) => {
     setModalMode(mode);
     setModalType(type);
     setCurrentItem(item);
-    setItemName(item ? (type === 'position' ? t(`positions.${item.name}`) : item.name) : '');
+    
+    if (type === 'department') {
+        const dept = item as Department;
+        setDeptName(dept ? dept.name : '');
+        setDeptColor(dept ? dept.color : '#CCCCCC');
+        setDefaultShiftId(dept?.defaultShiftId || undefined);
+    } else {
+        const pos = item as Position;
+        setPosName(item ? (t(`positions.${pos.name}`)) : '');
+    }
+    
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setCurrentItem(null);
-    setItemName('');
+    setDeptName('');
+    setDeptColor('#CCCCCC');
+    setDefaultShiftId(undefined);
+    setPosName('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem('access_token');
-    const url = `<span class="math-inline">\{API\_URL\}/</span>{modalType}s`;
+    const url = `${API_URL}/${modalType}s`;
+    let payload;
+
+    if (modalType === 'department') {
+        payload = { name: deptName, color: deptColor, defaultShiftId: defaultShiftId || null };
+    } else {
+        payload = { name: posName };
+    }
 
     try {
       if (modalMode === 'add') {
-        await axios.post(url, { name: itemName }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.post(url, payload, { headers: { Authorization: `Bearer ${token}` } });
       } else if (currentItem) {
-        await axios.patch(`<span class="math-inline">\{url\}/</span>{currentItem.id}`, { name: itemName }, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.patch(`${url}/${currentItem.id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
       }
       fetchData();
       closeModal();
@@ -83,13 +126,50 @@ export function CompanySettingsPage() {
     if (window.confirm(t('settings_page.delete_confirm'))) {
       try {
         const token = localStorage.getItem('access_token');
-        await axios.delete(`<span class="math-inline">\{API\_URL\}/</span>{type}s/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        await axios.delete(`${API_URL}/${type}s/${id}`, { headers: { Authorization: `Bearer ${token}` } });
         fetchData();
       } catch (error) {
         alert(`Failed to delete ${type}. Make sure no users are assigned to it.`);
       }
     }
   };
+  
+  const renderDepartmentModalContent = () => (
+    <form onSubmit={handleSubmit}>
+      <div className="form-group">
+        <label htmlFor="deptName">{t('settings_page.name_label')}</label>
+        <input id="deptName" type="text" value={deptName} onChange={(e) => setDeptName(e.target.value)} className="form-input" required />
+      </div>
+      <div className="form-group">
+        <label htmlFor="deptColor">Color</label>
+        <input id="deptColor" type="color" value={deptColor} onChange={(e) => setDeptColor(e.target.value)} className="form-input" required />
+      </div>
+      <div className="form-group">
+        <label htmlFor="defaultShift">Default Shift</label>
+        <select id="defaultShift" value={defaultShiftId || ''} onChange={(e) => setDefaultShiftId(e.target.value)} className="form-input">
+            <option value="">None</option>
+            {shifts.map(shift => <option key={shift.id} value={shift.id}>{shift.name}</option>)}
+        </select>
+      </div>
+      <div className="modal-actions">
+        <button type="button" onClick={closeModal} className="button button-secondary">{t('leave_management_page.cancel_button')}</button>
+        <button type="submit" className="button button-primary">{t('employees_page.edit_modal.save_button')}</button>
+      </div>
+    </form>
+  );
+
+  const renderPositionModalContent = () => (
+     <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="itemName">{t('settings_page.name_label')}</label>
+            <input id="itemName" type="text" value={posName} onChange={(e) => setPosName(e.target.value)} className="form-input" required />
+          </div>
+          <div className="modal-actions">
+            <button type="button" onClick={closeModal} className="button button-secondary">{t('leave_management_page.cancel_button')}</button>
+            <button type="submit" className="button button-primary">{t('employees_page.edit_modal.save_button')}</button>
+          </div>
+     </form>
+  );
 
   if (loading) return <p>Loading settings...</p>;
 
@@ -110,7 +190,10 @@ export function CompanySettingsPage() {
           <div className="settings-list">
             {departments.map(dept => (
               <div key={dept.id} className="list-item">
-                <span>{dept.name}</span>
+                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                    <div className="legend-color-box" style={{backgroundColor: dept.color}} />
+                    <span>{dept.name}</span>
+                </div>
                 <div className="list-item-actions">
                   <button onClick={() => openModal('edit', 'department', dept)}><VscEdit /></button>
                   <button onClick={() => handleDelete('department', dept.id)}><VscTrash /></button>
@@ -145,25 +228,9 @@ export function CompanySettingsPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={t(`settings_page.<span class="math-inline">\{modalMode\}\_</span>{modalType}_title`)}
+        title={t(`settings_page.${modalMode}_${modalType}_title`)}
       >
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="itemName">{t('settings_page.name_label')}</label>
-            <input
-              id="itemName"
-              type="text"
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-              className="form-input"
-              required
-            />
-          </div>
-          <div className="modal-actions">
-            <button type="button" onClick={closeModal} className="button button-secondary">{t('leave_management_page.cancel_button')}</button>
-            <button type="submit" className="button button-primary">{t('employees_page.edit_modal.save_button')}</button>
-          </div>
-        </form>
+        {modalType === 'department' ? renderDepartmentModalContent() : renderPositionModalContent()}
       </Modal>
     </div>
   );

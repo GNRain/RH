@@ -16,16 +16,6 @@
   flex-shrink: 0;
 }
 
-.week-navigation {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  background-color: var(--bg-secondary);
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  border: 1px solid var(--border-color);
-}
-
 .week-range-legend {
   font-size: 1.125rem;
   font-weight: 600;

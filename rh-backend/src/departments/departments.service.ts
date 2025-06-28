@@ -8,13 +8,14 @@ export class DepartmentsService {
   constructor(private prisma: PrismaService) {}
 
   create(createDepartmentDto: CreateDepartmentDto) {
+    // The DTO now includes color and defaultShiftId, so we pass it directly.
     return this.prisma.department.create({ data: createDepartmentDto });
   }
 
   findAll() {
     return this.prisma.department.findMany({
       orderBy: { name: 'asc' },
-      // Include the color and default shift details
+      // The include was already correct here.
       include: {
         defaultShift: true,
       },
@@ -22,7 +23,11 @@ export class DepartmentsService {
   }
 
   update(id: string, updateDepartmentDto: UpdateDepartmentDto) {
-    return this.prisma.department.update({ where: { id }, data: updateDepartmentDto });
+    // The update DTO also passes the new optional fields correctly.
+    return this.prisma.department.update({
+      where: { id },
+      data: updateDepartmentDto
+    });
   }
 
   remove(id: string) {
