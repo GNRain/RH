@@ -3,8 +3,7 @@ import axios from 'axios';
 import Stepper, { Step } from '../../components/Stepper/Stepper';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next'; // --- ADD IMPORT ---
-
-const API_URL = 'http://localhost:3000';
+import API_URL from '../../config';
 
 export function LoginPage({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const { t } = useTranslation(); // --- INITIALIZE THE HOOK ---

@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import API_URL from '../config';
 
-const API_URL = 'http://localhost:3000';
 
 // A custom hook to debounce input
 const useDebounce = (value: string, delay: number) => {

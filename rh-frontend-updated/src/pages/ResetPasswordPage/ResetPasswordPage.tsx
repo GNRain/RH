@@ -3,8 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next'; // --- ADD IMPORT ---
 import Stepper, { Step } from '../../components/Stepper/Stepper';
-
-const API_URL = 'http://localhost:3000';
+import API_URL from '../../config';
 
 export function ResetPasswordPage() {
   const { t } = useTranslation(); // --- INITIALIZE THE HOOK ---

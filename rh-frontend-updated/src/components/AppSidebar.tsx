@@ -1,3 +1,4 @@
+// rh-frontend-updated/src/components/AppSidebar.tsx
 
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -7,6 +8,7 @@ import {
   UserCheck,
   Clock,
   Settings,
+  LayoutDashboard, // Using a more appropriate icon for Dashboard
 } from "lucide-react";
 import {
   Sidebar,
@@ -19,21 +21,22 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from 'react-i18next'; 
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
+  // Corrected navigation keys to match your translation.json
   const navigation = [
-    { title: t('dashboard'), url: "/", icon: Users },
-    { title: t('leaveRequest'), url: "/leave-request", icon: Clock },
-    { title: t('schedule'), url: "/schedule", icon: Calendar },
-    { title: t('leaveManagement'), url: "/leave-management", icon: UserCheck },
-    { title: t('employees'), url: "/employee", icon: Users },
-    { title: t('documents'), url: "/documents", icon: FileText },
-    { title: t('companySettings'), url: "/company-settings", icon: Settings },
+    { title: t('sidebar.home'), url: "/", icon: LayoutDashboard },
+    { title: t('sidebar.my_leave'), url: "/leave-request", icon: Clock },
+    { title: t('schedule_page.title'), url: "/schedule", icon: Calendar },
+    { title: t('sidebar.leave_management'), url: "/leave-management", icon: UserCheck },
+    { title: t('sidebar.employees'), url: "/employee", icon: Users },
+    { title: t('sidebar.documents'), url: "/documents", icon: FileText },
+    { title: t('sidebar.settings'), url: "/company-settings", icon: Settings },
   ];
 
   const isActive = (path: string) => {

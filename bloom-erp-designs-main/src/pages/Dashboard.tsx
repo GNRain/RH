@@ -2,11 +2,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Clock, Calendar, FileText } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from 'react-i18next'; 
 
 const Dashboard = () => {
-  const { t } = useLanguage();
-
+  const { t } = useTranslation(); 
   const stats = [
     {
       title: t('totalEmployees'),

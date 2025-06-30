@@ -12,8 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, Download, Eye } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import API_URL from '../config';
 
-const API_URL = 'http://localhost:3000';
 
 const Documents = () => {
   const { t } = useTranslation();

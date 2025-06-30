@@ -14,8 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Separator } from "@/components/ui/separator";
 import { Settings, Users, Clock, FileText } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-
-const API_URL = 'http://localhost:3000';
+import API_URL from '../config';
 
 type Shift = {
   id: string;

@@ -4,10 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 import { Users, Clock, Calendar, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { jwtDecode } from 'jwt-decode';
+import API_URL from '../config';
 
-const API_URL = 'http://localhost:3000';
 const PIE_CHART_COLORS = ['#5227FF', '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#ffbb28'];
 
 interface DecodedToken { role: 'HR' | 'DHR'; }
@@ -15,7 +14,7 @@ interface DecodedToken { role: 'HR' | 'DHR'; }
 const WelcomeMessage = () => { const { t } = useTranslation(); return (<div className="space-y-6"><div><h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('dashboard.welcome')}</h2><p className="text-gray-600 dark:text-gray-400">{t('dashboard.welcome_subtitle')}</p></div></div>); };
 
 const Dashboard = () => {
-  const { t } = useLanguage();
+  const { t } = useTranslation(); 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isHrRole, setIsHrRole] = useState(false);

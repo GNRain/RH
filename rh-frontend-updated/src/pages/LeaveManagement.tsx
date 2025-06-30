@@ -8,8 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-
-const API_URL = 'http://localhost:3000';
+import API_URL from '../config';
 
 interface PendingRequest {
   id: string;

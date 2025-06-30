@@ -9,8 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ApprovalChain } from '@/components/ApprovalChain/ApprovalChain';
-
-const API_URL = 'http://localhost:3000';
+import API_URL from '../config';
 
 type Approver = {
   name: string; familyName: string;

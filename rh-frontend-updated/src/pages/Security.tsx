@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
+import API_URL from '../config';
 
-const API_URL = 'http://localhost:3000';
 
 const Security = () => {
   const { t } = useTranslation();

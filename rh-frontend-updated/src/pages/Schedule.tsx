@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+// rh-frontend-updated/src/pages/Schedule.tsx
+
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { jwtDecode } from 'jwt-decode';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
-import { VscChevronLeft, VscChevronRight, VscAccount } from 'react-icons/vsc';
-import { Modal } from '@/components/Modal/Modal';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { VscAccount } from 'react-icons/vsc';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import API_URL from '../config';
 
-const API_URL = 'http://localhost:3000';
-
+// Interfaces (no changes here)
 interface DecodedToken {
   role: 'HR' | 'DHR';
 }
@@ -22,33 +23,29 @@ interface User {
 interface Department {
     id: string; name: string; color: string;
 }
-interface ScheduleEvent {
-  id: string; title: string; start: string; end: string; allDay: boolean;
-  backgroundColor: string; borderColor: string;
-  extendedProps: {
-    shiftId: string; shiftName: string; departmentId: string;
-    departmentName: string; departmentColor: string;
-  };
-}
 
 const Schedule = () => {
   const { t, i18n } = useTranslation();
 
-  const [events, setEvents] = useState<ScheduleEvent[]>([]);
+  const [schedule, setSchedule] = useState<{ [key: string]: any }>({});
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [weekRange, setWeekRange] = useState('');
+  const [employeeCounts, setEmployeeCounts] = useState<{ [key: string]: number }>({});
   const [isHrRole, setIsHrRole] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [selectedDepartmentUsers, setSelectedDepartmentUsers] = useState<User[]>([]);
   const [isModalLoading, setIsModalLoading] = useState(false);
-  const [schedule, setSchedule] = useState<{ [key: string]: any }>({});
 
-  const timeSlots = [
-    "00:00-08:00", "08:00-16:00", "16:00-24:00"
+  const timeSlots = ["00:00-08:00", "08:00-16:00", "16:00-24:00"];
+  
+  // Corrected weekdays to only include Monday to Friday
+  const weekdays = [
+    t('schedule_page.days.monday'),
+    t('schedule_page.days.tuesday'),
+    t('schedule_page.days.wednesday'),
+    t('schedule_page.days.thursday'),
+    t('schedule_page.days.friday'),
   ];
-
-  const weekdays = [t('monday'), t('tuesday'), t('wednesday'), t('thursday'), t('friday'), t('saturday'), t('sunday')];
 
   const fetchSchedule = useCallback(async (start: Date, end: Date) => {
     try {
@@ -60,9 +57,10 @@ const Schedule = () => {
 
       const newSchedule: { [key: string]: any } = {};
       response.data.forEach((item: any) => {
-        const dayIndex = new Date(item.date).getDay();
+        const dayIndex = new Date(item.date).getDay() - 1; // Adjust for Monday-first week
         const timeIndex = timeSlots.findIndex(slot => slot.startsWith(item.shift.startTime));
-        if (dayIndex !== -1 && timeIndex !== -1) {
+        
+        if (dayIndex >= 0 && dayIndex < 5 && timeIndex !== -1) {
           const key = `${dayIndex}-${timeIndex}`;
           newSchedule[key] = {
             id: item.id,
@@ -87,31 +85,37 @@ const Schedule = () => {
       setIsHrRole(decoded.role === 'HR' || decoded.role === 'DHR');
     }
 
-    const fetchDepartments = async () => {
+    const fetchInitialData = async () => {
         try {
             const token = localStorage.getItem('access_token');
             const { data } = await axios.get(`${API_URL}/departments`, { headers: { Authorization: `Bearer ${token}` }});
-            setDepartments(data.filter((d: Department) => d.name !== 'HR'));
+            const filteredDepts = data.filter((d: Department) => d.name !== 'HR');
+            setDepartments(filteredDepts);
+
+            // Fetch employee counts for each department
+            const counts: { [key: string]: number } = {};
+            for (const dept of filteredDepts) {
+                const res = await axios.get(`${API_URL}/users`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                    params: { department: dept.name }
+                });
+                counts[dept.id] = res.data.length;
+            }
+            setEmployeeCounts(counts);
+
         } catch (error) {
-            console.error("Failed to fetch departments", error);
+            console.error("Failed to fetch initial data", error);
         }
     }
-    fetchDepartments();
+    fetchInitialData();
     
     const today = new Date();
-    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-    const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
-    updateWeekRange(startOfWeek, endOfWeek);
+    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+    const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 5));
+    fetchSchedule(startOfWeek, endOfWeek);
 
-  }, []);
+  }, [fetchSchedule]);
   
-  const updateWeekRange = useCallback((start: Date, end: Date) => {
-    const formattedStart = start.toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit' });
-    const formattedEnd = end.toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit' });
-    setWeekRange(`${formattedStart} - ${formattedEnd}`);
-    fetchSchedule(start, end);
-  }, [i18n.language, fetchSchedule]);
-
   const handleDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
 
@@ -134,8 +138,8 @@ const Schedule = () => {
         const token = localStorage.getItem('access_token');
         await axios.patch(`${API_URL}/schedules`, { updates }, { headers: { Authorization: `Bearer ${token}` } });
         const today = new Date();
-        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-        const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+        const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 5));
         fetchSchedule(startOfWeek, endOfWeek);
     } catch (error) {
         console.error("Failed to swap shifts", error);
@@ -190,10 +194,9 @@ const Schedule = () => {
         <p className="text-gray-600 dark:text-gray-400">{t('schedule_page.subtitle')}</p>
       </div>
 
-      {/* Department Legend */}
       <Card className="dark:bg-gray-800 dark:border-gray-700">
         <CardHeader>
-          <CardTitle className="dark:text-white">{t('departments')}</CardTitle>
+          <CardTitle className="dark:text-white">{t('schedule_page.departments')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
@@ -207,7 +210,6 @@ const Schedule = () => {
         </CardContent>
       </Card>
 
-      {/* Schedule Grid */}
       <Card className="dark:bg-gray-800 dark:border-gray-700">
         <CardHeader>
           <CardTitle className="dark:text-white">{t('schedule_page.weekly_schedule_grid')}</CardTitle>
@@ -219,7 +221,7 @@ const Schedule = () => {
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700">
                     <th className="border border-gray-200 dark:border-gray-600 py-3 px-4 text-left font-semibold text-gray-900 dark:text-white">
-                      {t('timeSlot')}
+                      {t('schedule_page.timeSlot')}
                     </th>
                     {weekdays.map((day) => (
                       <th key={day} className="border border-gray-200 dark:border-gray-600 py-3 px-4 text-center font-semibold text-gray-900 dark:text-white">
@@ -276,7 +278,6 @@ const Schedule = () => {
         </CardContent>
       </Card>
 
-      {/* Schedule Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {departments.map((dept) => (
           <Card key={dept.name} className="dark:bg-gray-800 dark:border-gray-700">
@@ -290,13 +291,12 @@ const Schedule = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">{t('schedule_page.weekly_hours')}:</span>
-                  <span className="font-medium dark:text-gray-300">56 {t('schedule_page.hours')}</span>
+                  <span className="font-medium dark:text-gray-300">40 {t('schedule_page.hours')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">{t('employees')}:</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">{t('schedule_page.employees')}:</span>
                   <span className="font-medium dark:text-gray-300">
-                    {/* This part needs to be dynamic based on actual employee data */}
-                    {dept.name === t('itDepartment') ? "45" : dept.name === t('hrDepartment') ? "32" : "65"}
+                    {employeeCounts[dept.id] || 0}
                   </span>
                 </div>
                 <div className="flex justify-between">

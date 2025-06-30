@@ -1,6 +1,10 @@
 {
+  "erpSystem": "Système ERP",
+  "navigation": "Navigation",
+  "security": "Sécurité",
+  "logout": "Déconnexion",
   "sidebar": {
-    "home": "Accueil",
+    "home": "Tableau de Bord",
     "my_leave": "Mes Congés",
     "leave_management": "Gestion des Congés",
     "employees": "Employés",
@@ -9,7 +13,7 @@
     "settings": "Paramètres de l'entreprise"
   },
   "header": {
-    "greeting": "Bonjour, {{name}}"
+    "greeting": "Bon Retour, {{name}}"
   },
   "login_page": {
     "welcome_title": "Bienvenue au portail RHG",
@@ -56,6 +60,19 @@
     "error_2fa_required": "Veuillez saisir votre code 2FA pour confirmer.",
     "error_failed_password_change": "Échec de la modification du mot de passe."
   },
+  "security_page": {
+    "title": "Paramètres de Sécurité",
+    "subtitle": "Gérez les fonctionnalités de sécurité de votre compte.",
+    "2fa_title": "Authentification à Deux Facteurs (2FA)",
+    "2fa_description": "Ajoutez une couche de sécurité supplémentaire à votre compte. Une fois activée, vous devrez saisir un code de votre application d'authentification lors de votre connexion.",
+    "2fa_enabled": "L'A2F est actuellement activée sur votre compte.",
+    "2fa_disabled": "L'A2F n'est pas actuellement activée sur votre compte.",
+    "enable_2fa_button": "Activer l'A2F",
+    "disable_2fa_button": "Désactiver l'A2F",
+    "scan_qr_code": "Scannez ce code QR avec votre application d'authentification.",
+    "verify_code_prompt": "Saisissez le code à 6 chiffres de votre application pour vérifier.",
+    "verify_and_enable_button": "Vérifier et Activer"
+  },
   "leave_management_page": {
     "title": "Gestion des Congés",
     "subtitle": "Examinez et répondez aux demandes de congé en attente des employés.",
@@ -76,6 +93,11 @@
     "to_label": "À"
   },
   "leave_page": {
+    "balance_title": "Solde de Congés",
+    "days_remaining": "Jours Restants",
+    "annual_leave": "Congé Annuel",
+    "sick_leave": "Congé Maladie",
+    "special_leave": "Congé Spécial",
     "new_request_title": "Nouvelle Demande de Congé",
     "new_request_subtitle": "Sélectionnez les dates et donnez une raison pour votre congé.",
     "from_label": "Du",
@@ -87,6 +109,9 @@
     "history_title": "Historique des Demandes",
     "history_loading": "Chargement de l'historique...",
     "history_empty": "Vous n'avez aucune demande de congé.",
+    "duration_label": "Durée",
+    "dates_label": "Dates",
+    "status_label": "Statut",
     "duration": "Durée : {{count}} jour(s)"
   },
   "leave_statuses": {
@@ -102,12 +127,15 @@
     "no_results": "Aucun employé trouvé correspondant à vos critères.",
     "loading": "Chargement...",
     "table": {
+      "title": "Employés",
+      "employees": "Employés",
       "name": "Nom",
       "contact": "Contact",
       "position": "Poste",
       "department": "Département",
       "status": "Statut",
-      "actions": "Actions"
+      "actions": "Actions",
+      "edit_button": "Modifier"
     },
     "create_modal": {
       "title": "Créer un Nouvel Employé",
@@ -193,7 +221,16 @@
     "error_passwords_no_match": "Les mots de passe ne correspondent pas.",
     "error_unexpected": "Une erreur inattendue est survenue."
   },
-   "positions": {
+  "positions": {
+    "position_it_manager": "Manager IT",
+    "position_biz_manager": "Manager Commercial",
+    "position_law_manager": "Manager Juridique",
+    "position_it_lead": "Lead IT",
+    "position_biz_lead": "Lead Commercial",
+    "position_law_lead": "Lead Juridique",
+    "position_developer": "Développeur",
+    "position_analyst": "Analyste",
+    "position_paralegal": "Parajuriste",
     "position_director_hr": "Directeur des Ressources Humaines",
     "position_hr_generalist": "Généraliste RH",
     "position_eng_manager": "Manager Technique",
@@ -214,7 +251,11 @@
     "edit_position_title": "Modifier le Poste",
     "create_department_title": "Créer un Département",
     "create_position_title": "Créer un Poste",
+    "add_position_title": "Ajouter un Poste",
     "name_label": "Nom",
+    "color_label": "Couleur",
+    "actions_label": "Actions",
+    "default_shift_label": "Quart par Défaut",
     "delete_confirm": "Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible."
   },
  "dashboard": {
@@ -236,7 +277,6 @@
         "age_distribution": "Répartition par Âge",
         "headcount_trend": "Tendance des Effectifs (6 derniers mois)",
         "leave_by_dept": "Jours de Congé par Département"
-        
     },
     "lists": {
         "on_leave": "Qui est en congé aujourd'hui",
@@ -247,7 +287,24 @@
   },
   "schedule_page": {
     "title": "Planning des Équipes",
-    "subtitle": "Visualisez et gérez le planning des shift pour tous les départements.",
+    "subtitle": "Visualisez et gérez le planning des quarts pour tous les départements.",
+    "weekly_schedule_grid": "Grille de Planning Hebdomadaire",
+    "timeSlot": "Créneau Horaire",
+    "departments": "Départements",
+    "eight_hour_shifts": "Quarts de 8 heures",
+    "weekly_hours": "Heures Hebdomadaires",
+    "hours": "heures",
+    "shift_pattern": "Modèle de Quart",
+    "employees": "Employés",
+    "days": {
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche"
+    },
     "apply_changes": "Appliquer les changements",
     "cancel": "Annuler",
     "changes_applied": "Le planning a été mis à jour avec succès !",

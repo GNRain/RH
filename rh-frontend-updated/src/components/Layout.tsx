@@ -7,12 +7,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Moon, Sun, Globe, User, Shield, LogOut } from "lucide-react";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 
 const Layout = () => {
   const { theme, toggleTheme } = useTheme();
-  const { language, setLanguage, t } = useLanguage();
+  const { t, i18n } = useTranslation(); // 👈 Use the hook here
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -35,8 +35,8 @@ const Layout = () => {
             {/* Language Selector */}
             <div className="flex items-center space-x-2">
               <Globe className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              <Select value={language} onValueChange={(value: 'en' | 'fr') => setLanguage(value)}>
-                <SelectTrigger className="w-20">
+              <Select value={i18n.language} onValueChange={(value: 'en' | 'fr') => i18n.changeLanguage(value)}>
+                    <SelectTrigger className="w-20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -56,7 +56,7 @@ const Layout = () => {
               {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
             
-            <div className="text-sm text-gray-600 dark:text-gray-400">{t('welcomeBack')}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">{t('header.greeting')}</div>
             
             {/* Profile Dropdown */}
             <DropdownMenu>

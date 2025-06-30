@@ -24,7 +24,7 @@ i18n
   // Initialize i18next
   .init({
     resources,
-    fallbackLng: 'en', // Use English if the detected language is not available
+    fallbackLng: 'fr', // Use French if the detected language is not available
     interpolation: {
       escapeValue: false, // React already safes from xss
     },

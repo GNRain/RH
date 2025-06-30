@@ -9,7 +9,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Layout from "./components/Layout";
 import Dashboard from './pages/Dashboard';
@@ -25,10 +24,9 @@ import NotFound from "./pages/NotFound";
 import { LoginPage } from './pages/LoginPage/LoginPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage/ResetPasswordPage';
 import { PrivateRoute } from '@/components/PrivateRoute';
+import API_URL from './config';
 
 const queryClient = new QueryClient();
-
-const API_URL = 'http://localhost:3000';
 
 interface DecodedToken {
   sub: string;
@@ -91,7 +89,6 @@ const App = () => {
   return (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <LanguageProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -116,7 +113,6 @@ const App = () => {
             </Routes>
           </SidebarProvider>
         </TooltipProvider>
-      </LanguageProvider>
     </ThemeProvider>
   </QueryClientProvider>
 )};
