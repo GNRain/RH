@@ -7,7 +7,7 @@ import { BulkUpdateScheduleDto } from './dto/bulk-update-schedule.dto';
 import { NotificationService } from 'src/notifications/notification.service';
 import { eachDayOfInterval } from 'date-fns';
 import { GeneratedScheduleDto } from './dto/schedule.dto';
-
+//test
 @Injectable()
 export class SchedulesService {
     constructor(
