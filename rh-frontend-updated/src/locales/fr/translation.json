@@ -285,7 +285,7 @@
         "empty_anniversaries": "Aucun anniversaire à venir."
     }
   },
-  "schedule_page": {
+    "schedule_page": {
     "title": "Planning des Équipes",
     "subtitle": "Visualisez et gérez le planning des quarts pour tous les départements.",
     "weekly_schedule_grid": "Grille de Planning Hebdomadaire",
@@ -313,6 +313,20 @@
       "title": "Département {{departmentName}}",
       "loading": "Chargement des détails de l'équipe...",
       "on_leave": "En Congé"
+    },
+    "toast": {
+      "invalid_move": {
+        "title": "Mouvement Invalide",
+        "description": "L'échange de quarts entre différents jours n'est pas autorisé."
+      },
+      "success": {
+        "title": "Planning Mis à Jour",
+        "description": "Le changement de quart a été sauvegardé."
+      },
+      "error": {
+        "title": "Échec de la Mise à Jour",
+        "description": "Impossible de sauvegarder la modification du planning."
+      }
     }
   }
 }

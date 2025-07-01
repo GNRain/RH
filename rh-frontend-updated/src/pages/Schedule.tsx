@@ -7,9 +7,10 @@ import { jwtDecode } from 'jwt-decode';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
-import { VscAccount } from 'react-icons/vsc';
+import { VscAccount, VscChevronLeft, VscChevronRight } from 'react-icons/vsc';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import API_URL from '../config';
+import { useToast } from "@/components/ui/use-toast";
 
 // Interfaces (no changes here)
 interface DecodedToken {
@@ -31,14 +32,15 @@ const Schedule = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [employeeCounts, setEmployeeCounts] = useState<{ [key: string]: number }>({});
   const [isHrRole, setIsHrRole] = useState(false);
+  const { toast } = useToast()
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [selectedDepartmentUsers, setSelectedDepartmentUsers] = useState<User[]>([]);
   const [isModalLoading, setIsModalLoading] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   const timeSlots = ["00:00-08:00", "08:00-16:00", "16:00-24:00"];
   
-  // Corrected weekdays to only include Monday to Friday
   const weekdays = [
     t('schedule_page.days.monday'),
     t('schedule_page.days.tuesday'),
@@ -47,36 +49,17 @@ const Schedule = () => {
     t('schedule_page.days.friday'),
   ];
 
-  const fetchSchedule = useCallback(async (start: Date, end: Date) => {
-    try {
-      const token = localStorage.getItem('access_token');
-      const response = await axios.get(`${API_URL}/schedules`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { startDate: start.toISOString(), endDate: end.toISOString() },
-      });
+  const getWeekStartAndEnd = useCallback((date: Date) => {
+    const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    const day = start.getUTCDay();
+    const diff = start.getUTCDate() - day + (day === 0 ? -6 : 1);
+    start.setUTCDate(diff);
 
-      const newSchedule: { [key: string]: any } = {};
-      response.data.forEach((item: any) => {
-        const dayIndex = new Date(item.date).getDay() - 1; // Adjust for Monday-first week
-        const timeIndex = timeSlots.findIndex(slot => slot.startsWith(item.shift.startTime));
-        
-        if (dayIndex >= 0 && dayIndex < 5 && timeIndex !== -1) {
-          const key = `${dayIndex}-${timeIndex}`;
-          newSchedule[key] = {
-            id: item.id,
-            departmentName: item.department.name,
-            departmentColor: item.shift.color,
-            shiftId: item.shift.id,
-            departmentId: item.department.id,
-          };
-        }
-      });
-      setSchedule(newSchedule);
+    const end = new Date(start);
+    end.setUTCDate(start.getUTCDate() + 4);
 
-    } catch (error) {
-      console.error("Failed to fetch schedule", error);
-    }
-  }, [timeSlots]);
+    return { startOfWeek: start, endOfWeek: end };
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -92,7 +75,6 @@ const Schedule = () => {
             const filteredDepts = data.filter((d: Department) => d.name !== 'HR');
             setDepartments(filteredDepts);
 
-            // Fetch employee counts for each department
             const counts: { [key: string]: number } = {};
             for (const dept of filteredDepts) {
                 const res = await axios.get(`${API_URL}/users`, {
@@ -108,43 +90,131 @@ const Schedule = () => {
         }
     }
     fetchInitialData();
+  }, []);
+
+  useEffect(() => {
+    const { startOfWeek, endOfWeek } = getWeekStartAndEnd(currentDate);
+
+    const source = axios.CancelToken.source();
+
+    const fetchSchedule = async () => {
+        try {
+          const token = localStorage.getItem('access_token');
+          const response = await axios.get(`${API_URL}/schedules`, {
+            headers: { Authorization: `Bearer ${token}` },
+            params: { startDate: startOfWeek.toISOString(), endDate: endOfWeek.toISOString() },
+            cancelToken: source.token
+          });
     
-    const today = new Date();
-    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
-    const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 5));
-    fetchSchedule(startOfWeek, endOfWeek);
+          const newSchedule: { [key: string]: any } = {};
+          response.data.forEach((item: any) => {
+            const itemDate = new Date(item.date);
+            const dayIndex = itemDate.getUTCDay();
+            const timeIndex = timeSlots.findIndex(slot => slot.startsWith(item.shift.startTime));
+            
+            if (dayIndex >= 1 && dayIndex <= 5 && timeIndex !== -1) {
+              const key = `${dayIndex - 1}-${timeIndex}`;
+              newSchedule[key] = {
+                id: item.id,
+                date: item.date,
+                departmentName: item.department.name,
+                departmentColor: item.shift.color,
+                shiftId: item.shift.id,
+                departmentId: item.department.id,
+              };
+            }
+          });
+          setSchedule(newSchedule);
+    
+        } catch (error) {
+          if (axios.isCancel(error)) {
+            console.log('Request canceled:', error.message);
+          } else {
+            console.error("Failed to fetch schedule", error);
+          }
+        }
+    }
 
-  }, [fetchSchedule]);
+    fetchSchedule();
+
+    return () => {
+        source.cancel('Component unmounted');
+    }
+  }, [currentDate, timeSlots, getWeekStartAndEnd]);
   
-  const handleDragEnd = async (result: DropResult) => {
+const handleDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
+    if (!destination || source.droppableId === destination.droppableId) return;
 
-    if (!destination) return;
+    const [sourceDayIndex] = source.droppableId.split('-').map(Number);
+    const [destDayIndex] = destination.droppableId.split('-').map(Number);
 
-    if (source.droppableId === destination.droppableId) return;
+    if (sourceDayIndex !== destDayIndex) {
+        toast({
+            variant: "alert", // Using the yellow alert variant
+            title: t('schedule_page.toast.invalid_move.title'),
+            description: t('schedule_page.toast.invalid_move.description'),
+        });
+        return;
+    }
 
     const sourceKey = source.droppableId;
     const destKey = destination.droppableId;
-
     const sourceCell = schedule[sourceKey];
     const destCell = schedule[destKey];
 
+    const newSchedule = { ...schedule, [sourceKey]: destCell, [destKey]: sourceCell };
+    setSchedule(newSchedule);
+
     const updates = [
-        { date: new Date(sourceCell.start).toISOString().split('T')[0], departmentId: sourceCell.departmentId, newShiftId: destCell.shiftId },
-        { date: new Date(destCell.start).toISOString().split('T')[0], departmentId: destCell.departmentId, newShiftId: sourceCell.shiftId },
+        { date: sourceCell.date, departmentId: sourceCell.departmentId, newShiftId: destCell.shiftId },
+        { date: destCell.date, departmentId: destCell.departmentId, newShiftId: sourceCell.shiftId },
     ];
 
     try {
         const token = localStorage.getItem('access_token');
         await axios.patch(`${API_URL}/schedules`, { updates }, { headers: { Authorization: `Bearer ${token}` } });
-        const today = new Date();
-        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
-        const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 5));
-        fetchSchedule(startOfWeek, endOfWeek);
+        toast({
+            variant: "success",
+            title: t('schedule_page.toast.success.title'),
+            description: t('schedule_page.toast.success.description'),
+        });
     } catch (error) {
+        setSchedule(schedule); // Revert on error
         console.error("Failed to swap shifts", error);
+        toast({
+            variant: "destructive",
+            title: t('schedule_page.toast.error.title'),
+            description: t('schedule_page.toast.error.description'),
+        });
     }
   };
+
+
+  const goToPreviousWeek = () => {
+    setCurrentDate(prev => {
+        const newDate = new Date(prev);
+        newDate.setUTCDate(prev.getUTCDate() - 7);
+        return newDate;
+    });
+  };
+
+  const goToNextWeek = () => {
+    setCurrentDate(prev => {
+        const newDate = new Date(prev);
+        newDate.setUTCDate(prev.getUTCDate() + 7);
+        return newDate;
+    });
+  };
+
+  const getWeekRange = () => {
+    const { startOfWeek, endOfWeek } = getWeekStartAndEnd(currentDate);
+
+    const formattedStart = startOfWeek.toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit', timeZone: 'UTC' });
+    const formattedEnd = endOfWeek.toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit', timeZone: 'UTC' });
+
+    return `${formattedStart} - ${formattedEnd}`;
+  }
 
   const getDepartmentStyle = (departmentName: string) => {
     const dept = departments.find(d => d.name === departmentName);
@@ -209,10 +279,19 @@ const Schedule = () => {
           </div>
         </CardContent>
       </Card>
-
+      
       <Card className="dark:bg-gray-800 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="dark:text-white">{t('schedule_page.weekly_schedule_grid')}</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="dark:text-white">{t('schedule_page.weekly_schedule_grid')}</CardTitle>
+            <div className="flex items-center gap-2">
+                <button onClick={goToPreviousWeek} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <VscChevronLeft className="h-5 w-5" />
+                </button>
+                <span className="font-semibold">{getWeekRange()}</span>
+                <button onClick={goToNextWeek} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <VscChevronRight className="h-5 w-5" />
+                </button>
+            </div>
         </CardHeader>
         <CardContent>
           <DragDropContext onDragEnd={handleDragEnd}>

@@ -313,6 +313,20 @@
       "title": "{{departmentName}} Department",
       "loading": "Loading team details...",
       "on_leave": "On Leave"
+    },
+    "toast": {
+      "invalid_move": {
+        "title": "Invalid Move",
+        "description": "Swapping shifts between different days is not allowed."
+      },
+      "success": {
+        "title": "Schedule Updated",
+        "description": "The shift change has been saved."
+      },
+      "error": {
+        "title": "Update Failed",
+        "description": "Could not save the schedule change."
+      }
     }
   }
 }

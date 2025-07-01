@@ -9,6 +9,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
 
 const Layout = () => {
   const { theme, toggleTheme } = useTheme();
@@ -97,6 +98,7 @@ const Layout = () => {
         <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
           <Outlet />
         </main>
+        <Toaster />
       </div>
     </div>
   );
