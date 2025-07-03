@@ -1,81 +1,71 @@
 /* src/components/ApprovalChain/ApprovalChain.css */
 
+.approval-chain-wrapper {
+  @apply w-full overflow-hidden rounded-lg bg-background;
+}
+
 .approval-chain-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  background-color: #1f2937; /* A slightly lighter dark color */
-  border-radius: 0.5rem;
-  margin-top: 1rem;
-  overflow-x: auto; /* Allow horizontal scrolling on small screens */
+  @apply flex items-center gap-2 p-3 overflow-x-auto;
+  /* Custom scrollbar for better aesthetics */
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) hsl(var(--background));
 }
 
 .chain-step {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  border: 1px solid #4b5563;
-  flex-shrink: 0;
-  transition: all 0.2s;
+  @apply flex shrink-0 cursor-pointer items-center gap-3 rounded-full border-2 p-2 pr-4 transition-all duration-300;
 }
 
-.step-icon {
-  display: flex;
-  align-items: center;
-  font-size: 1.25rem;
+.step-icon svg {
+  @apply h-5 w-5;
 }
 
 .step-details {
-  display: flex;
-  flex-direction: column;
+  @apply flex flex-col;
 }
 
 .step-role {
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: #f9fafb;
+  @apply text-sm font-semibold text-foreground;
 }
 
 .step-approver-name {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
+  @apply text-xs text-muted-foreground flex items-center gap-1;
 }
 
-.step-comment {
-  font-size: 0.75rem;
-  color: #fca5a5;
-  font-style: italic;
-  margin-top: 2px;
+/* Status-specific colors */
+.status-pending {
+  @apply border-yellow-500/50 bg-yellow-500/10 text-yellow-400;
+}
+.status-accepted {
+  @apply border-green-500/50 bg-green-500/10 text-green-400;
+}
+.status-declined {
+  @apply border-red-500/50 bg-red-500/10 text-red-400;
 }
 
-/* Status-specific styles */
-.chain-step.pending {
-  border-color: #f59e0b;
-}
-.icon-pending {
-  color: #f59e0b;
+/* Highlight the current active step */
+.chain-step-current {
+  @apply border-primary shadow-lg scale-105;
+  background-color: hsl(var(--primary) / 0.2);
 }
 
-.chain-step.accepted {
-  border-color: #10b981;
-}
-.icon-accepted {
-  color: #10b981;
+.chain-step-current .step-role {
+  color: hsl(var(--primary-foreground));
 }
 
-.chain-step.declined {
-  border-color: #ef4444;
+/* Dim steps that are not pending when the request is still active */
+.chain-step:not(.status-pending):not(.chain-step-current) {
+  @apply opacity-60;
 }
-.icon-declined {
-  color: #ef4444;
+
+/* If the request is finalized (all steps done), make all steps fully visible */
+.chain-step-finalized {
+  @apply opacity-100;
 }
 
 .chain-connector {
-  color: #4b5563;
+  @apply text-muted-foreground flex-shrink-0;
+}
+
+.chain-connector svg {
+  @apply h-5 w-5;
 }

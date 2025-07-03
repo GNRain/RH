@@ -12,7 +12,9 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/contexts/AuthContext";
 
 const Layout = () => {
-  const { user, onLogout } = useAuth();
+  // --- THIS IS THE FIX ---
+  // The context provides a function named 'logout', not 'onLogout'
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -29,23 +31,16 @@ const Layout = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Globe className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              <Select value={i18n.language} onValueChange={(value: 'en' | 'fr') => i18n.changeLanguage(value)}>
-                  <SelectTrigger className="w-20">
-                    <SelectValue />
-                  </SelectTrigger>
+              <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
+                  <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">EN</SelectItem>
-                    <SelectItem value="fr">FR</SelectItem>
+                      <SelectItem value="en">EN</SelectItem>
+                      <SelectItem value="fr">FR</SelectItem>
                   </SelectContent>
               </Select>
             </div>
             
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            >
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
               {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
             
@@ -60,23 +55,18 @@ const Layout = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <DropdownMenuItem 
-                  onClick={() => navigate('/profile')}
-                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
+                <DropdownMenuItem onClick={() => navigate('/profile')} className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
                   <User className="mr-2 h-4 w-4" />
                   <span>{t('sidebar.profile')}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => navigate('/security')}
-                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
+                <DropdownMenuItem onClick={() => navigate('/security')} className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
                   <Shield className="mr-2 h-4 w-4" />
                   <span>{t('security')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-600" />
                 <DropdownMenuItem 
-                  onClick={onLogout}
+                  // --- THIS IS THE FIX ---
+                  onClick={logout} 
                   className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-red-600 dark:text-red-400"
                 >
                   <LogOut className="mr-2 h-4 w-4" />

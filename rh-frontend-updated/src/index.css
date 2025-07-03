@@ -101,3 +101,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+.two-factor-switch[data-state='checked'] {
+  background-color: hsl(var(--success)); /* Green when ON */
+}
+
+.two-factor-switch[data-state='unchecked'] {
+  background-color: hsl(var(--destructive)); /* Red when OFF */
+}

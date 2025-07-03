@@ -332,5 +332,20 @@
       "description": "Vous n'avez pas les autorisations nécessaires pour modifier le planning." 
       }
     }
+  },
+   "approval_chain": {
+    "roles": {
+      "you": "Vous",
+      "team_leader": "Chef d'équipe",
+      "manager": "Manager",
+      "hr": "Ressources Humaines",
+      "dhr": "Directeur des RH"
+    },
+    "comment_label": "Commentaire"
+  },
+  "toast": {
+    "success_title": "Succès",
+    "error_title": "Erreur",
+    "leave_request_submitted": "Demande de congé soumise avec succès."
   }
 }

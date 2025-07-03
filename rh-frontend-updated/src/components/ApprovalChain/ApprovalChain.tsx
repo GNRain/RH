@@ -1,7 +1,23 @@
 // src/components/ApprovalChain/ApprovalChain.tsx
 
 import React from 'react';
-import { VscAccount, VscArrowRight, VscCheck, VscClose, VscEllipsis, VscOrganization } from 'react-icons/vsc';
+import { useTranslation } from 'react-i18next';
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
+  ChevronRight,
+  User,
+  Users,
+  Building,
+} from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 import './ApprovalChain.css';
 
 // Define the types to match our backend response
@@ -23,76 +39,113 @@ interface ApprovalChainProps {
   approvals: ApprovalStep[];
 }
 
-// A helper to format the role names nicely
-const formatApproverType = (type: ApprovalStep['approverType']) => {
+// Helper to get the right data for each role
+const getApproverTypeDetails = (
+  type: ApprovalStep['approverType'],
+  t: (key: string) => string
+) => {
   switch (type) {
-    case 'EMPLOYEE': return 'You';
-    case 'TEAM_LEADER': return 'Team Leader';
-    case 'MANAGER': return 'Manager';
-    case 'HR': return 'Human Resources';
-    case 'DHR': return 'Director of HR';
-    default: return 'Unknown';
+    case 'EMPLOYEE':
+      return { label: t('approval_chain.roles.you'), icon: User };
+    case 'TEAM_LEADER':
+      return { label: t('approval_chain.roles.team_leader'), icon: Users };
+    case 'MANAGER':
+      return { label: t('approval_chain.roles.manager'), icon: Users };
+    case 'HR':
+      return { label: t('approval_chain.roles.hr'), icon: Building };
+    case 'DHR':
+      return { label: t('approval_chain.roles.dhr'), icon: Building };
+    default:
+      return { label: 'Unknown', icon: User };
   }
 };
 
-// A helper to get the right icon for the status
-const getStatusIcon = (status: ApprovalStep['status']) => {
+// Helper to get the right icon and color for the status
+const getStatusDetails = (status: ApprovalStep['status']) => {
   switch (status) {
-    case 'ACCEPTED': return <VscCheck className="icon-accepted" />;
-    case 'DECLINED': return <VscClose className="icon-declined" />;
-    case 'PENDING': return <VscEllipsis className="icon-pending" />;
-    default: return null;
+    case 'ACCEPTED':
+      return { icon: CheckCircle, className: 'status-accepted' };
+    case 'DECLINED':
+      return { icon: XCircle, className: 'status-declined' };
+    case 'PENDING':
+      return { icon: Clock, className: 'status-pending' };
+    default:
+      return { icon: Clock, className: 'status-pending' };
   }
 };
 
 export function ApprovalChain({ approvals }: ApprovalChainProps) {
+  const { t } = useTranslation();
+
   if (!approvals || approvals.length === 0) {
     return null;
   }
 
-  // Add the initial "You" step for visualization
-  const fullChain: ApprovalStep[] = [
-    { 
-      id: 'start',
-      approver: null,
-      approverType: 'EMPLOYEE',
-      status: 'ACCEPTED',
-      comment: 'Request Submitted',
-      step: 0,
-    },
-    ...approvals,
-  ];
+  // Find the current step index
+  const currentStepIndex = approvals.findIndex(
+    (step) => step.status === 'PENDING'
+  );
+  const isFinalized = currentStepIndex === -1; // No pending steps means the request is finalized
 
   return (
-    <div className="approval-chain-container">
-      {fullChain.map((step, index) => (
-        <React.Fragment key={step.id}>
-          <div className={`chain-step ${step.status.toLowerCase()}`}>
-            <div className="step-icon">
-              {getStatusIcon(step.status)}
-            </div>
-            <div className="step-details">
-              <span className="step-role">{formatApproverType(step.approverType)}</span>
-              {step.approver && (
-                <span className="step-approver-name">
-                  <VscAccount /> {step.approver.name} {step.approver.familyName}
-                </span>
+    <div className="approval-chain-wrapper">
+      <div className="approval-chain-container">
+        {approvals.map((step, index) => {
+          const { icon: RoleIcon, label: roleLabel } = getApproverTypeDetails(
+            step.approverType,
+            t
+          );
+          const { icon: StatusIcon, className: statusClassName } =
+            getStatusDetails(step.status);
+          const isCurrent = index === currentStepIndex;
+
+          const approverName = step.approver
+            ? `${step.approver.name} ${step.approver.familyName}`
+            : roleLabel; // Fallback to role label if no specific approver
+
+          return (
+            <React.Fragment key={step.id}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={cn(
+                        'chain-step',
+                        statusClassName,
+                        isCurrent && 'chain-step-current',
+                        isFinalized && 'chain-step-finalized'
+                      )}
+                    >
+                      <div className="step-icon">
+                        <StatusIcon />
+                      </div>
+                      <div className="step-details">
+                        <span className="step-role">{roleLabel}</span>
+                        <span className="step-approver-name">
+                          <RoleIcon className="h-3 w-3" /> {approverName}
+                        </span>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  {step.comment && (
+                    <TooltipContent>
+                      <p>
+                        {t('approval_chain.comment_label')}: {step.comment}
+                      </p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+
+              {index < approvals.length - 1 && (
+                <div className="chain-connector">
+                  <ChevronRight />
+                </div>
               )}
-              {step.approverType === 'HR' && !step.approver && (
-                 <span className="step-approver-name"><VscOrganization /> HR Department</span>
-              )}
-              {step.status === 'DECLINED' && step.comment && (
-                <span className="step-comment">Reason: {step.comment}</span>
-              )}
-            </div>
-          </div>
-          {index < fullChain.length - 1 && (
-            <div className="chain-connector">
-              <VscArrowRight />
-            </div>
-          )}
-        </React.Fragment>
-      ))}
+            </React.Fragment>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+// Make sure this path is correct for your project structure
 import { ApprovalChain } from '@/components/ApprovalChain/ApprovalChain';
 import API_URL from '../config';
 
@@ -34,16 +35,17 @@ const calculateDuration = (fromDate: string, toDate: string): number => {
   return Math.max(1, Math.round(differenceInDays) + 1);
 };
 
+// This now uses theme-aware CSS classes from your shadcn/ui setup
 const getStatusColor = (status: string) => {
   switch (status) {
     case "ACCEPTED":
-      return "bg-green-100 text-green-800";
+      return "bg-success text-success-foreground";
     case "PENDING":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-secondary text-secondary-foreground";
     case "DECLINED":
-      return "bg-red-100 text-red-800";
+      return "bg-destructive text-destructive-foreground";
     default:
-      return "bg-gray-100 text-gray-800";
+      return "bg-muted text-muted-foreground";
   }
 };
 
@@ -57,6 +59,14 @@ const LeaveRequest = () => {
 
   const [leaveHistory, setLeaveHistory] = useState<LeaveRequestType[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
+
+  // --- NEW ---: State to track the expanded row
+  const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
+
+  // --- NEW ---: Toggle function
+  const handleToggleRow = (requestId: string) => {
+    setExpandedRequestId(currentId => (currentId === requestId ? null : requestId));
+  };
 
   const fetchLeaveHistory = useCallback(async () => {
     setIsHistoryLoading(true);
@@ -113,8 +123,8 @@ const LeaveRequest = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('leave_page.new_request_title')}</h2>
-        <p className="text-gray-600">{t('leave_page.new_request_subtitle')}</p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{t('leave_page.new_request_title')}</h2>
+        <p className="text-muted-foreground">{t('leave_page.new_request_subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -141,7 +151,7 @@ const LeaveRequest = () => {
                 <Textarea id="reason" placeholder={t('leave_page.reason_placeholder')} value={reason} onChange={(e) => setReason(e.target.value)} rows={3} required />
               </div>
 
-              {error && <p className="text-red-500 text-sm">{error}</p>}
+              {error && <p className="text-destructive text-sm">{error}</p>}
 
               <Button type="submit" className="w-full" disabled={loading}>
                 <VscSend className="mr-2" />
@@ -152,7 +162,7 @@ const LeaveRequest = () => {
         </Card>
 
         {/* Leave Balance */}
-        <Card>
+         <Card>
           <CardHeader>
             <CardTitle>{t('leave_page.balance_title')}</CardTitle>
           </CardHeader>
@@ -175,7 +185,7 @@ const LeaveRequest = () => {
         </Card>
       </div>
 
-      {/* My Leave Requests */}
+      {/* --- MODIFIED ---: My Leave Requests Table */}
       <Card>
         <CardHeader>
           <CardTitle>{t('leave_page.history_title')}</CardTitle>
@@ -184,11 +194,11 @@ const LeaveRequest = () => {
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">{t('leave_page.duration_label')}</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">{t('leave_page.dates_label')}</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">{t('leave_page.reason_label')}</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-900">{t('leave_page.status_label')}</th>
+                <tr className="border-b">
+                  <th className="text-left py-3 px-4 font-semibold text-foreground">{t('leave_page.duration_label')}</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground">{t('leave_page.dates_label')}</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground">{t('leave_page.reason_label')}</th>
+                  <th className="text-left py-3 px-4 font-semibold text-foreground">{t('leave_page.status_label')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -198,16 +208,31 @@ const LeaveRequest = () => {
                   <tr><td colSpan={4} className="text-center py-4">{t('leave_page.history_empty')}</td></tr>
                 ) : (
                   leaveHistory.map((request) => (
-                    <tr key={request.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4">{t('leave_page.duration', { count: calculateDuration(request.fromDate, request.toDate) })}</td>
-                      <td className="py-3 px-4">{new Date(request.fromDate).toLocaleDateString()} - {new Date(request.toDate).toLocaleDateString()}</td>
-                      <td className="py-3 px-4">{request.reason}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.overallStatus)}`}>
-                          {t(`leave_statuses.${request.overallStatus.toLowerCase()}`)}
-                        </span>
-                      </td>
-                    </tr>
+                    // Use React.Fragment to group the main row and the details row
+                    <React.Fragment key={request.id}>
+                      <tr
+                        className="border-b border-muted hover:bg-muted/50 cursor-pointer"
+                        onClick={() => handleToggleRow(request.id)}
+                      >
+                        <td className="py-3 px-4">{t('leave_page.duration', { count: calculateDuration(request.fromDate, request.toDate) })}</td>
+                        <td className="py-3 px-4">{new Date(request.fromDate).toLocaleDateString()} - {new Date(request.toDate).toLocaleDateString()}</td>
+                        <td className="py-3 px-4 truncate max-w-xs">{request.reason}</td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.overallStatus)}`}>
+                            {t(`leave_statuses.${request.overallStatus.toLowerCase()}`)}
+                          </span>
+                        </td>
+                      </tr>
+                      {/* This is the new expandable row */}
+                      {expandedRequestId === request.id && (
+                        <tr className="bg-muted/20">
+                          <td colSpan={4} className="p-4">
+                            <h4 className="text-sm font-semibold mb-2 text-foreground">Approval Workflow</h4>
+                            <ApprovalChain approvals={request.approvals} />
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))
                 )}
               </tbody>

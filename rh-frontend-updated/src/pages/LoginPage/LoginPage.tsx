@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
+// rh-frontend-updated/src/pages/LoginPage/LoginPage.tsx
+
+import React, { useState } from 'react';
 import axios from 'axios';
 import Stepper, { Step } from '../../components/Stepper/Stepper';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next'; // --- ADD IMPORT ---
+import { useTranslation } from 'react-i18next';
 import API_URL from '../../config';
+import { useAuth } from '@/contexts/AuthContext';
 
-export function LoginPage({ onLoginSuccess }: { onLoginSuccess: () => void }) {
-  const { t } = useTranslation(); // --- INITIALIZE THE HOOK ---
+export function LoginPage() {
+  const { t } = useTranslation();
+  const { login } = useAuth();
   const [step, setStep] = useState(1);
   const [cin, setCin] = useState('');
   const [password, setPassword] = useState('');
@@ -18,17 +22,20 @@ export function LoginPage({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const [isSettingUp2fa, setIsSettingUp2fa] = useState(false);
   const [isShowingQr, setIsShowingQr] = useState(false);
   
-  // ... (all logic functions remain the same) ...
-
   const resetFlowState = () => {
     setError(''); setQrCodeImage(null); setIsSettingUp2fa(false); setIsShowingQr(false);
   };
+
   const handleLoginSubmit = async () => {
     if (!cin || !password) return setError('CIN and Password are required.');
     resetFlowState(); setLoading(true);
     try {
       const response = await axios.post(`${API_URL}/auth/login`, { cin, password });
-      if (response.data.message === '2FA setup required') {
+      
+      if (response.data.access_token) {
+        // Direct login success, call the context's login function
+        login(response.data.access_token);
+      } else if (response.data.message === '2FA setup required') {
         setPartialToken(response.data.partial_token); setQrCodeImage(response.data.qrCodeImage);
         setIsSettingUp2fa(true); setIsShowingQr(true); setStep(3);
       } else if (response.data.message === '2FA code required') {
@@ -38,41 +45,44 @@ export function LoginPage({ onLoginSuccess }: { onLoginSuccess: () => void }) {
       setError(err.response?.data?.message || 'An unexpected error occurred.');
     } finally { setLoading(false); }
   };
+
   const handle2faSubmit = async () => {
     if (!twoFactorCode) return setError('Please enter a valid 6-digit code.');
     setError(''); setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/auth/2fa/authenticate`, { code: twoFactorCode }, { headers: { Authorization: `Bearer ${partialToken}` } });
-      localStorage.setItem('access_token', response.data.access_token); setStep(4);
+      const response = await axios.post(`${API_URL}/auth/2fa/authenticate`, { 
+        partial_token: partialToken,
+        code: twoFactorCode 
+      });
+      login(response.data.access_token);
     } catch (err: any) {
       setError(err.response?.data?.message || 'An unexpected error occurred.');
     } finally { setLoading(false); }
   };
+
   const handle2faSetupSubmit = async () => {
     if (!twoFactorCode) return setError('Please enter a valid 6-digit code from your app.');
     setError(''); setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/auth/2fa/turn-on`, { code: twoFactorCode }, { headers: { Authorization: `Bearer ${partialToken}` } });
-      localStorage.setItem('access_token', response.data.access_token); setStep(4);
+      const response = await axios.post(
+        `${API_URL}/auth/2fa/turn-on`, 
+        { code: twoFactorCode }, 
+        { headers: { Authorization: `Bearer ${partialToken}` } }
+      );
+      login(response.data.access_token);
     } catch (err: any) {
       setError(err.response?.data?.message || 'An unexpected error occurred.');
     } finally { setLoading(false); }
   };
-  const handleBack = () => { resetFlowState(); setStep(step - 1); };
 
-  useEffect(() => {
-    if (step === 4) {
-      const timer = setTimeout(() => onLoginSuccess(), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [step, onLoginSuccess]);
+  const handleBack = () => { resetFlowState(); setStep(step - 1); };
   
   const stepperHeight = isSettingUp2fa && isShowingQr ? 550 : undefined;
 
   return (
     <div>
       <Stepper currentStep={step} onStepChange={setStep} overrideHeight={stepperHeight} disableStepIndicators={true}>
-        {/* --- JSX NOW USES THE t() FUNCTION --- */}
+        {/* Your JSX for the steps remains unchanged */}
         <Step>
           <h2>{t('login_page.welcome_title')}</h2>
           <p>{t('login_page.welcome_subtitle')}</p>
@@ -123,11 +133,6 @@ export function LoginPage({ onLoginSuccess }: { onLoginSuccess: () => void }) {
               </div>
             </>
           )}
-        </Step>
-        
-        <Step>
-          <h2>{t('login_page.success_title')}</h2>
-          <p>{t('login_page.success_subtitle')}</p>
         </Step>
       </Stepper>
       {error && <p style={{ color: 'red', textAlign: 'center', marginTop: '1.5rem', fontWeight: 'bold' }}>{error}</p>}

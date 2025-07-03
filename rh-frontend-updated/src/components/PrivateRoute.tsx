@@ -1,19 +1,23 @@
 // src/components/PrivateRoute.tsx
 
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import React from 'react';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-export const PrivateRoute = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+const PrivateRoute = () => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
 
-  if (isLoading) {
-    // You can replace this with a beautiful spinner component
-    return <div>Loading...</div>; 
+  if (loading) {
+    return <div>Loading...</div>; // Or a proper loading spinner
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // If authenticated, render the Outlet, which will display the correct nested route.
   return <Outlet />;
 };
+
+export default PrivateRoute;

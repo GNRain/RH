@@ -330,7 +330,22 @@
       "permission_denied": {
       "title": "Permission Denied",
       "description": "You do not have the necessary permissions to modify the schedule."
-}
+      }
     }
+  },
+   "approval_chain": {
+    "roles": {
+      "you": "You",
+      "team_leader": "Team Leader",
+      "manager": "Manager",
+      "hr": "Human Resources",
+      "dhr": "Director of HR"
+    },
+    "comment_label": "Comment"
+  },
+  "toast": {
+    "success_title": "Success",
+    "error_title": "Error",
+    "leave_request_submitted": "Leave request submitted successfully."
   }
 }

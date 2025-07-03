@@ -1,17 +1,13 @@
-// rh-frontend-updated/src/App.tsx
+// src/App.tsx
 
-import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
-import axios from 'axios';
-import { useTranslation } from 'react-i18next';
-
+import { Routes, Route } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from '@/contexts/AuthContext';
 import Layout from "./components/Layout";
 import Dashboard from './pages/Dashboard';
 import LeaveRequest from './pages/LeaveRequest';
@@ -25,94 +21,43 @@ import Security from './pages/Security';
 import NotFound from "./pages/NotFound";
 import { LoginPage } from './pages/LoginPage/LoginPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage/ResetPasswordPage';
-import { PrivateRoute } from '@/components/PrivateRoute';
-import { AuthProvider } from '@/contexts/AuthContext';
-import API_URL from './config';
+import PrivateRoute from '@/components/PrivateRoute';
 
 const queryClient = new QueryClient();
 
-interface DecodedToken {
-  sub: string;
-  role: 'EMPLOYEE' | 'TEAM_LEADER' | 'MANAGER' | 'HR' | 'DHR';
-}
-
-interface UserProfile {
-  name: string;
-  department: string;
-  role: 'EMPLOYEE' | 'TEAM_LEADER' | 'MANAGER' | 'HR' | 'DHR';
-}
-
 const App = () => {
-  const { t } = useTranslation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        try {
-          jwtDecode<DecodedToken>(token);
-          setIsAuthenticated(true);
-          const { data } = await axios.get(`${API_URL}/users/me`, {
-              headers: { Authorization: `Bearer ${token}` }
-          });
-          setUser({ name: data.name, department: data.department.name, role: data.role });
-        } catch (error) { localStorage.removeItem('access_token'); }
-      }
-      setIsLoading(false);
-    };
-    checkAuth();
-  }, []);
-
-  const handleLoginSuccess = async () => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-        setIsAuthenticated(true);
-        const { data } = await axios.get(`${API_URL}/users/me`, { headers: { Authorization: `Bearer ${token}` } });
-        setUser({ name: data.name, department: data.department.name, role: data.role });
-        navigate('/');
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    setIsAuthenticated(false);
-    setUser(null);
-    navigate('/login');
-  };
-
-  if (isLoading) return null;
-
-  const approverRoles = ['TEAM_LEADER', 'MANAGER', 'HR', 'DHR'];
-  const hrRoles = ['HR', 'DHR'];
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <AuthProvider value={{ user, isAuthenticated, isLoading, onLogout: handleLogout }}>            <SidebarProvider>
+          {/* AuthProvider now correctly wraps all routes without passing any props */}
+          <AuthProvider>
+            <SidebarProvider>
               <Routes>
+                {/* Public Routes */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+                {/* Private Routes are now children of the PrivateRoute component */}
                 <Route element={<PrivateRoute />}>
-                    <Route path="/" element={<Layout />}>
-                    <Route index element={<Dashboard />} />
+                  <Route element={<Layout />}>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/home" element={<Dashboard />} /> {/* Explicitly route /home */}
                     <Route path="leave-request" element={<LeaveRequest />} />
                     <Route path="schedule" element={<Schedule />} />
-                    {user && approverRoles.includes(user.role) && <Route path="leave-management" element={<LeaveManagement />} />}
-                    {user && hrRoles.includes(user.role) && <Route path="employee" element={<Employee />} />}
+                    <Route path="leave-management" element={<LeaveManagement />} />
+                    <Route path="employee" element={<Employee />} />
                     <Route path="documents" element={<Documents />} />
-                    {user && user.role === 'DHR' && <Route path="company-settings" element={<CompanySettings />} />}
+                    <Route path="company-settings" element={<CompanySettings />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="security" element={<Security />} />
                   </Route>
                 </Route>
-                <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route path="*" element={isAuthenticated ? <NotFound /> : <Navigate to="/login" />} />
+                
+                {/* Catch-all Not Found Route */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </SidebarProvider>
           </AuthProvider>
