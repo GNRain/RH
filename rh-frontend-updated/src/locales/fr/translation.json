@@ -326,6 +326,10 @@
       "error": {
         "title": "Échec de la Mise à Jour",
         "description": "Impossible de sauvegarder la modification du planning."
+      },
+      "permission_denied": {
+      "title": "Autorisation Refusée",
+      "description": "Vous n'avez pas les autorisations nécessaires pour modifier le planning." 
       }
     }
   }

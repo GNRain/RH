@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { VscAccount, VscChevronLeft, VscChevronRight } from 'react-icons/vsc';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import API_URL from '../config';
 import { useToast } from "@/components/ui/use-toast";
+import API_URL from '../config';
 
 // Interfaces (no changes here)
 interface DecodedToken {
@@ -27,12 +27,11 @@ interface Department {
 
 const Schedule = () => {
   const { t, i18n } = useTranslation();
-
+  const { toast } = useToast();
   const [schedule, setSchedule] = useState<{ [key: string]: any }>({});
   const [departments, setDepartments] = useState<Department[]>([]);
   const [employeeCounts, setEmployeeCounts] = useState<{ [key: string]: number }>({});
   const [isHrRole, setIsHrRole] = useState(false);
-  const { toast } = useToast()
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [selectedDepartmentUsers, setSelectedDepartmentUsers] = useState<User[]>([]);
@@ -142,16 +141,25 @@ const Schedule = () => {
     }
   }, [currentDate, timeSlots, getWeekStartAndEnd]);
   
-const handleDragEnd = async (result: DropResult) => {
+  const handleDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
     if (!destination || source.droppableId === destination.droppableId) return;
+
+    if (!isHrRole) {
+      toast({
+        variant: "destructive",
+        title: t('schedule_page.toast.permission_denied.title'),
+        description: t('schedule_page.toast.permission_denied.description'),
+      });
+      return;
+    }
 
     const [sourceDayIndex] = source.droppableId.split('-').map(Number);
     const [destDayIndex] = destination.droppableId.split('-').map(Number);
 
     if (sourceDayIndex !== destDayIndex) {
         toast({
-            variant: "alert", // Using the yellow alert variant
+            variant: "alert",
             title: t('schedule_page.toast.invalid_move.title'),
             description: t('schedule_page.toast.invalid_move.description'),
         });
@@ -189,7 +197,6 @@ const handleDragEnd = async (result: DropResult) => {
         });
     }
   };
-
 
   const goToPreviousWeek = () => {
     setCurrentDate(prev => {
@@ -327,15 +334,23 @@ const handleDragEnd = async (result: DropResult) => {
                                 <div
                                   ref={provided.innerRef}
                                   {...provided.droppableProps}
-                                  className={`min-h-[40px] flex items-center justify-center ${snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-blue-900/30 rounded-lg' : ''}`}>
-                                  <Draggable draggableId={`${cellKey}-${cellData.departmentName}`} index={0}>
+                                  className={`min-h-[40px] flex items-center justify-center ${snapshot.isDraggingOver && isHrRole ? 'bg-blue-50 dark:bg-blue-900/30 rounded-lg' : ''}`}>
+                                  <Draggable 
+                                    draggableId={`${cellKey}-${cellData.departmentName}`} 
+                                    index={0}
+                                    isDragDisabled={!isHrRole}
+                                  >
                                     {(provided, snapshot) => (
                                       <div
                                         ref={provided.innerRef}
                                         {...provided.draggableProps}
                                         {...provided.dragHandleProps}
                                         className={`${snapshot.isDragging ? 'transform rotate-6 scale-105' : ''}`}>
-                                        <Badge variant="secondary" style={{backgroundColor: style.bgColor, color: style.textColor}} className={`font-medium px-3 py-1 cursor-grab active:cursor-grabbing transition-transform hover:scale-105`}>
+                                        <Badge 
+                                          variant="secondary" 
+                                          style={{backgroundColor: style.bgColor, color: style.textColor}} 
+                                          className={`font-medium px-3 py-1 ${isHrRole ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} transition-transform hover:scale-105`}
+                                        >
                                           {cellData.departmentName}
                                         </Badge>
                                       </div>

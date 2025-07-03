@@ -1,9 +1,19 @@
+// src/components/PrivateRoute.tsx
+
 import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface PrivateRouteProps {
-  isAuthenticated: boolean;
-}
+export const PrivateRoute = () => {
+  const { isAuthenticated, isLoading } = useAuth();
 
-export const PrivateRoute = ({ isAuthenticated }: PrivateRouteProps) => {
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  if (isLoading) {
+    // You can replace this with a beautiful spinner component
+    return <div>Loading...</div>; 
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
 };

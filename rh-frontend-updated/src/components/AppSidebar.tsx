@@ -2,13 +2,13 @@
 
 import { NavLink, useLocation } from "react-router-dom";
 import {
+  LayoutDashboard, // A better icon for the dashboard
   Users,
   Calendar,
   FileText,
   UserCheck,
   Clock,
   Settings,
-  LayoutDashboard, // Using a more appropriate icon for Dashboard
 } from "lucide-react";
 import {
   Sidebar,
@@ -23,20 +23,41 @@ import {
 } from "@/components/ui/sidebar";
 import { useTranslation } from 'react-i18next'; 
 
-export function AppSidebar() {
+// Define the UserProfile type to be used as a prop
+interface UserProfile {
+  role: 'EMPLOYEE' | 'TEAM_LEADER' | 'MANAGER' | 'HR' | 'DHR';
+}
+
+interface AppSidebarProps {
+  user: UserProfile | null;
+}
+
+export function AppSidebar({ user }: AppSidebarProps) {
   const { state } = useSidebar();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t } = useTranslation(); 
 
-  // Corrected navigation keys to match your translation.json
+  const approverRoles = ['TEAM_LEADER', 'MANAGER', 'HR', 'DHR'];
+  const hrRoles = ['HR', 'DHR'];
+  
+  // The navigation array is now built inside the component
   const navigation = [
     { title: t('sidebar.home'), url: "/", icon: LayoutDashboard },
     { title: t('sidebar.my_leave'), url: "/leave-request", icon: Clock },
     { title: t('schedule_page.title'), url: "/schedule", icon: Calendar },
-    { title: t('sidebar.leave_management'), url: "/leave-management", icon: UserCheck },
-    { title: t('sidebar.employees'), url: "/employee", icon: Users },
+    // Conditionally add the "Leave Management" link
+    ...(user && approverRoles.includes(user.role) 
+      ? [{ title: t('sidebar.leave_management'), url: "/leave-management", icon: UserCheck }] 
+      : []),
+    // Conditionally add the "Employees" link
+    ...(user && hrRoles.includes(user.role) 
+      ? [{ title: t('sidebar.employees'), url: "/employee", icon: Users }] 
+      : []),
     { title: t('sidebar.documents'), url: "/documents", icon: FileText },
-    { title: t('sidebar.settings'), url: "/company-settings", icon: Settings },
+    // Conditionally add the "Company Settings" link
+    ...(user && user.role === 'DHR' 
+      ? [{ title: t('sidebar.settings'), url: "/company-settings", icon: Settings }] 
+      : []),
   ];
 
   const isActive = (path: string) => {
@@ -74,7 +95,7 @@ export function AppSidebar() {
                       end={item.url === "/"}
                       className={({ isActive: linkIsActive }) =>
                         `flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                          isActive(item.url) || linkIsActive
+                          isActive(item.url) || linkIsCodeAccessible
                             ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
                             : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
                         }`

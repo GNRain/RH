@@ -1,3 +1,5 @@
+// rh-frontend-updated/src/App.tsx
+
 import { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -24,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import { LoginPage } from './pages/LoginPage/LoginPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage/ResetPasswordPage';
 import { PrivateRoute } from '@/components/PrivateRoute';
+import { AuthProvider } from '@/contexts/AuthContext';
 import API_URL from './config';
 
 const queryClient = new QueryClient();
@@ -87,34 +90,36 @@ const App = () => {
   const hrRoles = ['HR', 'DHR'];
 
   return (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <SidebarProvider>
-            <Routes>
-              <Route element={<PrivateRoute isAuthenticated={isAuthenticated} />}>
-                <Route path="/" element={<Layout user={user} onLogout={handleLogout} />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="leave-request" element={<LeaveRequest />} />
-                  <Route path="schedule" element={<Schedule />} />
-                  {user && approverRoles.includes(user.role) && <Route path="leave-management" element={<LeaveManagement />} />}
-                  {user && hrRoles.includes(user.role) && <Route path="employee" element={<Employee />} />}
-                  <Route path="documents" element={<Documents />} />
-                  {user && user.role === 'DHR' && <Route path="company-settings" element={<CompanySettings />} />}
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="security" element={<Security />} />
+          <AuthProvider value={{ user, isAuthenticated, isLoading, onLogout: handleLogout }}>            <SidebarProvider>
+              <Routes>
+                <Route element={<PrivateRoute />}>
+                    <Route path="/" element={<Layout />}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="leave-request" element={<LeaveRequest />} />
+                    <Route path="schedule" element={<Schedule />} />
+                    {user && approverRoles.includes(user.role) && <Route path="leave-management" element={<LeaveManagement />} />}
+                    {user && hrRoles.includes(user.role) && <Route path="employee" element={<Employee />} />}
+                    <Route path="documents" element={<Documents />} />
+                    {user && user.role === 'DHR' && <Route path="company-settings" element={<CompanySettings />} />}
+                    <Route path="profile" element={<Profile />} />
+                    <Route path="security" element={<Security />} />
+                  </Route>
                 </Route>
-              </Route>
-              <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="*" element={isAuthenticated ? <NotFound /> : <Navigate to="/login" />} />
-            </Routes>
-          </SidebarProvider>
+                <Route path="/login" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="*" element={isAuthenticated ? <NotFound /> : <Navigate to="/login" />} />
+              </Routes>
+            </SidebarProvider>
+          </AuthProvider>
         </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-)};
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
