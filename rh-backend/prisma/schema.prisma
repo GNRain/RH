@@ -174,3 +174,31 @@ enum LeaveType {
   SICK_LEAVE
   PERSONAL
 }
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  
+  // Metadata fields from your target design
+  version     String   @default("1.0")
+  size        Int      // We will store size in kilobytes (KB)
+  format      String   // e.g., "PDF", "DOCX", "PNG"
+  downloads   Int      @default(0)
+  filePath    String   // The path where the file is stored on the server
+
+  // Category Relationship
+  categoryId  String
+  category    DocumentCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  // Automatic Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DocumentCategory {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  color     String     @default("#CCCCCC") // For the colored badge on the frontend
+  documents Document[] // A category can have many documents
+}

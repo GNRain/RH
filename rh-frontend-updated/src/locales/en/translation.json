@@ -184,14 +184,53 @@
       "none": "None"
     }
   },
-  "documents_page": {
-    "title": "Documents",
-    "subtitle": "Select a document to generate and download.",
-    "work_certificate_title": "Work Certificate",
-    "work_certificate_description": "An official document certifying your employment, position, and start date.",
-    "download_button": "Download",
-    "generating_button": "Generating...",
-    "error_unexpected": "An unexpected error occurred."
+"documents_page": {
+    "title": "Document Management",
+    "description": "Access and manage company documents and policies",
+    "add_new_document": "Add New Document",
+    "total_documents": "Total Documents",
+    "categories": "Categories",
+    "total_downloads": "Total Downloads",
+    "updated_this_week": "Updated This Week",
+    "search_placeholder": "Search documents by title or description...",
+    "all_categories": "All Categories",
+    "version": "Version",
+    "size": "Size",
+    "format": "Format",
+    "downloads": "Downloads",
+    "upload_date": "Upload Date",
+    "uploaded_on": "Uploaded on",
+    "preview": "Preview",
+    "download": "Download",
+    "no_documents_found_title": "No documents found",
+    "no_documents_found_filter_desc": "Try adjusting your search or filter criteria",
+    "no_documents_found_yet_desc": "No documents have been uploaded yet",
+    "add_modal_title": "Add New Document",
+    "doc_title_label": "Document Title *",
+    "doc_title_placeholder": "Enter document title",
+    "doc_desc_label": "Description",
+    "doc_desc_placeholder": "Enter document description",
+    "category": "Category *",
+    "select_category_placeholder": "Select category",
+    "version_placeholder": "e.g., v1.0",
+    "file_label": "Upload File *",
+    "uploading_button": "Uploading...",
+    "add_doc_button": "Add Document",
+    "delete_modal_title": "Delete Document",
+    "delete_modal_desc_1": "Are you sure you want to permanently delete",
+    "delete_modal_desc_2": "This action cannot be undone.",
+    "delete_modal_label": "To confirm, please type the document title below:"
+  },
+  "common": {
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "deleting": "Deleting..."
+  },
+  "toast": {
+    "error_title": "Error",
+    "success_title": "Success"
   },
   "reset_password_page": {
     "step1_title": "Reset Your Password",

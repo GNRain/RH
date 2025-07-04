@@ -14,7 +14,7 @@ import LeaveRequest from './pages/LeaveRequest';
 import Schedule from './pages/Schedule';
 import LeaveManagement from './pages/LeaveManagement';
 import Employee from './pages/Employee';
-import Documents from './pages/Documents';
+import { Documents } from './pages/Documents';
 import CompanySettings from './pages/CompanySettings';
 import Profile from './pages/Profile';
 import Security from './pages/Security';

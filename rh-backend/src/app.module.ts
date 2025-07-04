@@ -13,6 +13,7 @@ import { PositionsModule } from './positions/positions.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ShiftsModule } from './shifts/shifts.module';
 import { SchedulesModule } from './schedules/schedules.module';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   // --- MODIFIED IMPORTS ---
@@ -29,6 +30,7 @@ import { SchedulesModule } from './schedules/schedules.module';
     DashboardModule,
     ShiftsModule,
     SchedulesModule,
+    DocumentsModule,
   ],
   controllers: [AppController],
   providers: [AppService], // UsersService was correctly removed in the previous step
