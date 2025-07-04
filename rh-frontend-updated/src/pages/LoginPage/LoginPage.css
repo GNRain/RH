@@ -1,22 +1,36 @@
-.login-logo {
-  position: absolute; /* Position it relative to the viewport */
-  top: 2rem;          /* 2rem from the top */
-  left: 2rem;         /* 2rem from the left */
-  
-  /* --- This is the resizing logic --- */
-  width: 180px;       /* Set a fixed width for the logo */
-  height: auto;       /* 'auto' maintains the original aspect ratio */
-
-  z-index: 10;        /* Ensure it sits on top of the background */
+.login-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  background-color: hsl(var(--background));
+  padding: 1rem;
+  position: relative;
 }
+
+/* --- FIX ---: Make the wrapper take up space to center itself */
+.login-form-wrapper {
+  width: 100%;
+  max-width: 450px;
+  /* margin: auto; is implicitly handled by the flex container */
+}
+
+.login-logo {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  z-index: 10;
+}
+
 .forgot-password-link {
-  color: #a3a3a3;
+  color: hsl(var(--muted-foreground));
   font-size: 0.875rem;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .forgot-password-link:hover {
-  color: #fff;
+  color: hsl(var(--foreground));
   text-decoration: underline;
 }

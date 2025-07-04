@@ -1,15 +1,15 @@
-/* src/components/Stepper.css (Pixel-Perfect Dark Theme) */
+/* src/components/Stepper/Stepper.css (Pixel-Perfect Dark Theme) */
 
 /* The main card container */
 .step-circle-container {
   margin-left: auto;
   margin-right: auto;
-  width: 35vw; /* CHANGED: Width reduced to 35% of viewport width */
-  min-width: 450px; /* ADDED: A minimum width to prevent it from getting too cramped on small screens */
+  width: 100%; /* Let the wrapper control the width */
   border-radius: 1.5rem;
-  border: 1px solid #374151;
+  border: 1px solid hsl(var(--border)); /* Use theme-aware border */
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background-color: hsl(var(--card)); /* Use theme-aware background */
 }
 
 /* The row of step indicators */
@@ -23,18 +23,17 @@
 
 /* The content of each step */
 .step-default {
-  padding: 1rem 2.5rem 2rem 2.5rem; /* Adjusted padding */
+  padding: 1rem 2.5rem 2rem 2.5rem;
 }
 
+/* --- FIX ---: Removed hardcoded text colors */
 .step-default h2 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #fff;
   text-align: center;
 }
 
 .step-default p {
-  color: #a3a3a3;
   margin-top: 0.5rem;
   text-align: center;
 }
@@ -44,27 +43,27 @@
   padding: 0.75rem 1rem;
   font-size: 1rem;
   border-radius: 0.5rem;
-  background-color: #1f2937;
-  border: 1px solid #4b5563;
-  color: #f9fafb;
+  background-color: hsl(var(--input)); /* Use theme-aware background */
+  border: 1px solid hsl(var(--border));  /* Use theme-aware border */
+  color: hsl(var(--foreground)); /* Use theme-aware text color */
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #5227FF;
-  box-shadow: 0 0 0 3px rgba(82, 39, 255, 0.4);
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.4);
 }
 .form-input::placeholder {
-  color: #9CA3AF;
+  color: hsl(var(--muted-foreground));
 }
 
 
-/* --- NEW: The Footer for our buttons --- */
+/* --- The Footer for our buttons --- */
 .step-footer {
   margin-top: 2.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #333;
+  border-top: 1px solid hsl(var(--border));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -83,20 +82,21 @@
 
 /* Primary "Next" button */
 .button-primary {
-  background-color: #5227FF;
-  color: white;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 .button-primary:hover {
-  background-color: #4823e0;
+  background-color: hsl(var(--primary) / 0.9);
 }
 
 /* "Previous" ghost button */
 .button-secondary {
   background-color: transparent;
-  color: #a3a3a3;
+  color: hsl(var(--muted-foreground));
 }
 .button-secondary:hover {
-  color: #fff;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--muted));
 }
 
 .button:disabled {
@@ -104,7 +104,7 @@
   cursor: not-allowed;
 }
 
-/* --- Step Indicator styles to match target --- */
+/* --- Step Indicator styles --- */
 .step-indicator {
   position: relative;
   cursor: pointer;
@@ -119,15 +119,15 @@
   justify-content: center;
   border-radius: 9999px;
   font-weight: 600;
-  background-color: #333; /* Inactive circle color */
-  color: #a3a3a3;
+  background-color: hsl(var(--muted)); /* Inactive circle color */
+  color: hsl(var(--muted-foreground));
 }
 
 .active-dot {
   height: 0.75rem;
   width: 0.75rem;
   border-radius: 9999px;
-  background-color: #fff;
+  background-color: hsl(var(--primary-foreground));
 }
 
 .step-number {
@@ -141,7 +141,7 @@
   height: 0.125rem;
   flex: 1;
   border-radius: 0.25rem;
-  background-color: #333;
+  background-color: hsl(var(--muted));
 }
 
 .step-connector-inner {
@@ -149,13 +149,13 @@
   left: 0;
   top: 0;
   height: 100%;
-  background-color: #5227FF; /* Completed line color */
+  background-color: hsl(var(--primary)); /* Completed line color */
 }
 
 .check-icon {
   height: 1rem;
   width: 1rem;
-  color: #fff;
+  color: hsl(var(--primary-foreground));
 }
 .stepper-qr-expanded {
   min-height: 520px;
