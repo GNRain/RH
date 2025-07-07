@@ -113,7 +113,7 @@ export function ResetPasswordPage() {
             <input placeholder={t('reset_password_page.confirm_password_placeholder')} type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={loading} className="form-input" />
           </div>
           <div className="step-footer">
-            <button onClick={() => navigate('/login')} disabled={loading} className="button button-secondary">{t('reset_password_page.cancel_button')}</button>
+            <button onClick={() => navigate('/login')} disabled={loading} className="button button-secondary">{t('reset_password_page.cancel_button')test}</button>
             <button onClick={handleResetPasswordSubmit} disabled={loading} className="button button-primary">
               {loading ? t('reset_password_page.resetting_button') : t('reset_password_page.reset_button')}
             </button>
