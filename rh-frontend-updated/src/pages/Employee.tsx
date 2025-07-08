@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
-import { VscSearch, VscEdit, VscAdd, VscRefresh } from 'react-icons/vsc';
+import apiClient from '../api'; // --- Use the new API client ---
 import { useTranslation } from 'react-i18next';
+import { VscSearch, VscEdit, VscAdd, VscRefresh } from 'react-icons/vsc';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,8 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import API_URL from '../config';
-
 
 // A custom hook to debounce input
 const useDebounce = (value: string, delay: number) => {
@@ -29,7 +27,7 @@ type Role = 'EMPLOYEE' | 'TEAM_LEADER' | 'MANAGER' | 'HR' | 'DHR';
 
 interface User {
   id: string; name: string; familyName: string; email: string; cin: string;
-  position: { id: string, name: string }; 
+  position: { id: string, name: string };
   department: { id: string, name: string };
   status: UserStatus; role: Role; phoneNumber?: string;
   managerId?: string; teamLeaderId?: string;
@@ -45,13 +43,13 @@ const Employee = () => {
   const { t } = useTranslation();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createFormData, setCreateFormData] = useState(initialCreateFormData);
-  
-  const [departments, setDepartments] = useState<{id: string, name: string}[]>([]);
-  const [positions, setPositions] = useState<{id: string, name: string}[]>([]);
-  
+
+  const [departments, setDepartments] = useState<{ id: string, name: string }[]>([]);
+  const [positions, setPositions] = useState<{ id: string, name: string }[]>([]);
+
   const [teamLeaders, setTeamLeaders] = useState<User[]>([]);
   const [managers, setManagers] = useState<User[]>([]);
 
@@ -60,36 +58,32 @@ const Employee = () => {
   const [editFormData, setEditFormData] = useState<Partial<User & { departmentId?: string, positionId?: string }>>({});
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState<string>('all'); // Changed to 'all'
-  const [statusFilter, setStatusFilter] = useState<UserStatus | ''>( 'all'); // Changed to 'all'
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<UserStatus | ''>('all');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
       const params = new URLSearchParams();
       if (debouncedSearchTerm) params.append('search', debouncedSearchTerm);
-      if (departmentFilter !== 'all') params.append('department', departmentFilter); // Adjusted logic
-      if (statusFilter !== 'all') params.append('status', statusFilter); // Adjusted logic
-      const response = await axios.get(`${API_URL}/users`, {
-        headers: { Authorization: `Bearer ${token}` }, params,
-      });
+      if (departmentFilter !== 'all') params.append('department', departmentFilter);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      
+      const response = await apiClient.get('/users', { params });
       setUsers(response.data);
-    } catch (err) { console.error('Failed to fetch employees.', err); } 
+    } catch (err) { console.error('Failed to fetch employees.', err); }
     finally { setLoading(false); }
   }, [debouncedSearchTerm, departmentFilter, statusFilter]);
 
   useEffect(() => {
     const fetchSupportingData = async () => {
-      const token = localStorage.getItem('access_token');
-      const headers = { Authorization: `Bearer ${token}` };
       try {
         const [tlRes, managerRes, deptRes, posRes] = await Promise.all([
-          axios.get(`${API_URL}/users`, { headers, params: { role: 'TEAM_LEADER' } }),
-          axios.get(`${API_URL}/users`, { headers, params: { role: 'MANAGER' } }),
-          axios.get(`${API_URL}/departments`, { headers }),
-          axios.get(`${API_URL}/positions`, { headers }),
+          apiClient.get('/users', { params: { role: 'TEAM_LEADER' } }),
+          apiClient.get('/users', { params: { role: 'MANAGER' } }),
+          apiClient.get('/departments'),
+          apiClient.get('/positions'),
         ]);
         setTeamLeaders(tlRes.data);
         setManagers(managerRes.data);
@@ -105,7 +99,7 @@ const Employee = () => {
   const handleCreateFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setCreateFormData({ ...createFormData, [e.target.name]: e.target.value });
   };
-  
+
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = { ...createFormData };
@@ -114,8 +108,7 @@ const Employee = () => {
       payload.managerId = selectedTeamLeader?.managerId || '';
     }
     try {
-      const token = localStorage.getItem('access_token');
-      await axios.post(`${API_URL}/users`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      await apiClient.post('/users', payload);
       setIsCreateModalOpen(false);
       setCreateFormData(initialCreateFormData);
       fetchUsers();
@@ -155,8 +148,7 @@ const Employee = () => {
         payload.managerId = selectedTeamLeader?.managerId;
     }
     try {
-      const token = localStorage.getItem('access_token');
-      await axios.patch(`${API_URL}/users/${editingUser.id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      await apiClient.patch(`/users/${editingUser.id}`, payload);
       setIsEditModalOpen(false);
       fetchUsers();
       toast({
@@ -176,8 +168,7 @@ const Employee = () => {
     if (!editingUser) return;
     if (window.confirm(t('employees_page.edit_modal.reset_2fa_confirm', { name: editingUser.name }))) {
       try {
-        const token = localStorage.getItem('access_token');
-        await axios.patch(`${API_URL}/users/${editingUser.id}/reset-2fa`, {}, { headers: { Authorization: `Bearer ${token}` }});
+        await apiClient.patch(`/users/${editingUser.id}/reset-2fa`, {});
         toast({
           title: "Success",
           description: "2FA has been successfully reset.",
@@ -334,7 +325,6 @@ const Employee = () => {
         </Dialog>
       </div>
 
-      {/* Search and Filter */}
       <Card>
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
@@ -370,7 +360,6 @@ const Employee = () => {
         </CardContent>
       </Card>
 
-      {/* Employee List */}
       <Card>
         <CardHeader>
           <CardTitle>{t('employees_page.table.title')} ({users.length} {t('employees_page.table.employees')})</CardTitle>

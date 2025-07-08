@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import apiClient from '../api'; // --- Use the new API client ---
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -9,15 +9,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from "@/components/ui/input";
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import API_URL from '../config';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const SecurityPage = () => {
   const { t } = useTranslation();
-  const { user, fetchUser } = useAuth(); // Assuming useAuth provides the current user and a way to refetch
+  const { user, fetchUser } = useAuth();
   const [is2faEnabled, setIs2faEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // State for the modals
   const [showEnableModal, setShowEnableModal] = useState(false);
   const [showDisableModal, setShowDisableModal] = useState(false);
@@ -37,10 +36,8 @@ const SecurityPage = () => {
     setError('');
     setVerificationCode('');
     if (checked) {
-      // User wants to enable 2FA
       handleEnable2fa();
     } else {
-      // User wants to disable 2FA
       setShowDisableModal(true);
     }
   };
@@ -48,10 +45,8 @@ const SecurityPage = () => {
   const handleEnable2fa = async () => {
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await axios.get(`${API_URL}/auth/2fa/generate`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // --- Use apiClient for the request ---
+      const response = await apiClient.get('/auth/2fa/generate');
       setQrCode(response.data.qrCodeImage);
       setShowEnableModal(true);
     } catch (err) {
@@ -69,13 +64,11 @@ const SecurityPage = () => {
     setIsSubmitting(true);
     setError('');
     try {
-      const token = localStorage.getItem('access_token');
-      await axios.post(`${API_URL}/auth/2fa/turn-on`, { code: verificationCode }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // --- Use apiClient for the request ---
+      await apiClient.post('/auth/2fa/turn-on', { code: verificationCode });
       toast({ title: t('toast.success_title'), description: t('security_page.enable_success') });
       setShowEnableModal(false);
-      await fetchUser(); // Refetch user data to update context and UI
+      await fetchUser();
     } catch (err) {
       setError(t('security_page.invalid_code_error'));
     } finally {
@@ -91,20 +84,18 @@ const SecurityPage = () => {
     setIsSubmitting(true);
     setError('');
     try {
-      const token = localStorage.getItem('access_token');
-      await axios.post(`${API_URL}/auth/2fa/turn-off`, { code: verificationCode }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // --- Use apiClient for the request ---
+      await apiClient.post('/auth/2fa/turn-off', { code: verificationCode });
       toast({ title: t('toast.success_title'), description: t('security_page.disable_success') });
       setShowDisableModal(false);
-      await fetchUser(); // Refetch user data
+      await fetchUser();
     } catch (err) {
       setError(t('security_page.invalid_code_error'));
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   if (isLoading) {
     return <Skeleton className="h-48 w-full" />;
   }
@@ -124,14 +115,13 @@ const SecurityPage = () => {
                 {t('security_page.2fa_description')}
               </span>
             </Label>
-<Switch
-  id="two-factor-auth"
-  // Add this className
-  className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-red-500"
-  checked={is2faEnabled}
-  onCheckedChange={handleToggleChange}
-  disabled={isSubmitting}
-/>
+            <Switch
+              id="two-factor-auth"
+              className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-red-500"
+              checked={is2faEnabled}
+              onCheckedChange={handleToggleChange}
+              disabled={isSubmitting}
+            />
           </div>
         </CardContent>
       </Card>

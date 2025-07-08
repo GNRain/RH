@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api'; 
 import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid } from 'recharts';
 import { Users, Clock, Calendar, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { jwtDecode } from 'jwt-decode';
-import API_URL from '../config';
 
 const PIE_CHART_COLORS = ['#5227FF', '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#ffbb28'];
 
@@ -14,7 +13,7 @@ interface DecodedToken { role: 'HR' | 'DHR'; }
 const WelcomeMessage = () => { const { t } = useTranslation(); return (<div className="space-y-6"><div><h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{t('dashboard.welcome')}</h2><p className="text-gray-600 dark:text-gray-400">{t('dashboard.welcome_subtitle')}</p></div></div>); };
 
 const Dashboard = () => {
-  const { t } = useTranslation(); 
+  const { t } = useTranslation();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isHrRole, setIsHrRole] = useState(false);
@@ -29,9 +28,9 @@ const Dashboard = () => {
       if (userIsHr) {
         const fetchData = async () => {
           try {
-            const response = await axios.get(`${API_URL}/dashboard/hr`, { headers: { Authorization: `Bearer ${token}` }});
+            const response = await apiClient.get('/dashboard/hr');
             setData(response.data);
-          } catch (error) { console.error("Failed to fetch HR dashboard data", error); } 
+          } catch (error) { console.error("Failed to fetch HR dashboard data", error); }
           finally { setLoading(false); }
         };
         fetchData();
@@ -107,7 +106,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data.employeesByDept} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}><XAxis dataKey="name" stroke="#9ca3af"/><YAxis allowDecimals={false} stroke="#9ca3af"/><Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/><Bar dataKey="count" name="Employees" fill="#8884d8" /></BarChart>
+              <BarChart data={data.employeesByDept || []} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}><XAxis dataKey="name" stroke="#9ca3af"/><YAxis allowDecimals={false} stroke="#9ca3af"/><Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/><Bar dataKey="count" name="Employees" fill="#8884d8" /></BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -119,7 +118,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data.leaveDaysByDept} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}><XAxis dataKey="name" stroke="#9ca3af"/><YAxis allowDecimals={false} stroke="#9ca3af"/><Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/><Bar dataKey="count" name="Days" fill="#82ca9d" /></BarChart>
+              <BarChart data={data.leaveDaysByDept || []} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}><XAxis dataKey="name" stroke="#9ca3af"/><YAxis allowDecimals={false} stroke="#9ca3af"/><Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/><Bar dataKey="count" name="Days" fill="#82ca9d" /></BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -131,7 +130,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={data.headcountTrend} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}><CartesianGrid strokeDasharray="3 3" stroke="#374151"/><XAxis dataKey="name" stroke="#9ca3af"/><YAxis stroke="#9ca3af" domain={[0, 'dataMax + 2']}/><Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/><Line type="monotone" dataKey="count" name="Employees" stroke="#8884d8" activeDot={{ r: 8 }} /></LineChart>
+              <LineChart data={data.headcountTrend || []} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}><CartesianGrid strokeDasharray="3 3" stroke="#374151"/><XAxis dataKey="name" stroke="#9ca3af"/><YAxis stroke="#9ca3af" domain={[0, 'dataMax + 2']}/><Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/><Line type="monotone" dataKey="count" name="Employees" stroke="#8884d8" activeDot={{ r: 8 }} /></LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -145,7 +144,13 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <PieChart><Pie data={data.leaveTypeBreakdown} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>{data.leaveTypeBreakdown.map((_: any, i: number) => <Cell key={`cell-${i}`} fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} />)}</Pie><Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/><Legend /></PieChart>
+              <PieChart>
+                <Pie data={data.leaveTypeBreakdown || []} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                  {(data.leaveTypeBreakdown || []).map((_: any, i: number) => <Cell key={`cell-${i}`} fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/>
+                <Legend />
+              </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -157,7 +162,13 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <PieChart><Pie data={data.genderRatio} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} label>{data.genderRatio.map((_: any, i: number) => <Cell key={`cell-${i}`} fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} />)}</Pie><Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/><Legend /></PieChart>
+              <PieChart>
+                <Pie data={data.genderRatio || []} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} label>
+                  {(data.genderRatio || []).map((_: any, i: number) => <Cell key={`cell-${i}`} fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/>
+                <Legend />
+              </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -169,7 +180,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={data.ageDistribution} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}><XAxis dataKey="name" stroke="#9ca3af"/><YAxis allowDecimals={false} stroke="#9ca3af"/><Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/><Bar dataKey="count" name="Employees" fill="#ffc658" /></BarChart>
+              <BarChart data={data.ageDistribution || []} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}><XAxis dataKey="name" stroke="#9ca3af"/><YAxis allowDecimals={false} stroke="#9ca3af"/><Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}/><Bar dataKey="count" name="Employees" fill="#ffc658" /></BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>

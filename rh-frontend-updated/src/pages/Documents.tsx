@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, FileStack, Shapes, Download, Clock } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import API_URL from '../config';
+import apiClient from '../api'; // --- Use the new API client ---
 import { DocumentCard } from '@/components/DocumentCard';
 import { AddDocumentModal } from '@/components/AddDocumentModal';
 import { DeleteDocumentModal } from '@/components/DeleteDocumentModal';
@@ -32,19 +31,15 @@ export const Documents = () => {
 
     const fetchData = useCallback(async () => {
         setLoading(true);
-        const token = localStorage.getItem('access_token');
-        const authHeader = { headers: { Authorization: `Bearer ${token}` } };
-        
         try {
             const params: { search?: string; category?: string } = {};
             if (searchTerm) params.search = searchTerm;
             if (selectedCategory !== 'all') params.category = selectedCategory;
 
-            // --- THIS IS THE FIX ---
-            // We fetch promises individually to handle potential failures gracefully.
-            const docsPromise = axios.get(`${API_URL}/documents`, { params, ...authHeader });
-            const statsPromise = axios.get(`${API_URL}/documents/stats`, authHeader);
-            const catsPromise = axios.get(`${API_URL}/documents/categories`, authHeader);
+            // --- Use apiClient for all requests ---
+            const docsPromise = apiClient.get('/documents', { params });
+            const statsPromise = apiClient.get('/documents/stats');
+            const catsPromise = apiClient.get('/documents/categories');
 
             const [docsRes, statsRes, catsRes] = await Promise.all([
                 docsPromise.catch(e => { console.error("Docs fetch failed:", e); return { data: [] }; }),
@@ -57,10 +52,8 @@ export const Documents = () => {
             setCategories(catsRes.data);
 
         } catch (error) {
-            // This will catch fundamental errors, but individual failures are handled above.
             toast({ title: t('toast.error_title'), description: t('documents_page.fetch_error'), variant: "destructive" });
         } finally {
-            // This will now always be called.
             setLoading(false);
         }
     }, [searchTerm, selectedCategory, t]);
@@ -77,8 +70,7 @@ export const Documents = () => {
     const handleDeleteConfirm = async (documentId) => {
         setIsSubmitting(true);
         try {
-            const token = localStorage.getItem('access_token');
-            await axios.delete(`${API_URL}/documents/${documentId}`, { headers: { Authorization: `Bearer ${token}` } });
+            await apiClient.delete(`/documents/${documentId}`);
             toast({ title: t('toast.success_title'), description: t('documents_page.delete_success') });
             setIsDeleteModalOpen(false);
             setDocumentToDelete(null);

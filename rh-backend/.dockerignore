@@ -1,0 +1,18 @@
+# Dependency directories
+node_modules/
+
+# Build directory
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# Git files
+.git/
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import apiClient from '../../api';
+import apiClient from '../api';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import API_URL from '../config';
 
 export const AddDocumentModal = ({ isOpen, onClose, categories, onUploadSuccess }) => {
   const { t } = useTranslation();
@@ -34,10 +33,7 @@ export const AddDocumentModal = ({ isOpen, onClose, categories, onUploadSuccess 
     
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('access_token');
-      await axios.post(`${API_URL}/documents/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
-      });
+      await apiClient.post(`/documents/upload`, formData);
       toast({ title: t('toast.success_title'), description: t('documents_page.upload_success') });
       onUploadSuccess();
       onClose();

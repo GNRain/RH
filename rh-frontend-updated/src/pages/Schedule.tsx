@@ -1,7 +1,7 @@
 // rh-frontend-updated/src/pages/Schedule.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import apiClient from '../api'; // --- Use the new API client ---
 import { useTranslation } from 'react-i18next';
 import { jwtDecode } from 'jwt-decode';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,6 @@ import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautif
 import { VscAccount, VscChevronLeft, VscChevronRight } from 'react-icons/vsc';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import API_URL from '../config';
 
 // Interfaces (no changes here)
 interface DecodedToken {
@@ -39,7 +38,7 @@ const Schedule = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const timeSlots = ["00:00-08:00", "08:00-16:00", "16:00-24:00"];
-  
+
   const weekdays = [
     t('schedule_page.days.monday'),
     t('schedule_page.days.tuesday'),
@@ -69,17 +68,13 @@ const Schedule = () => {
 
     const fetchInitialData = async () => {
         try {
-            const token = localStorage.getItem('access_token');
-            const { data } = await axios.get(`${API_URL}/departments`, { headers: { Authorization: `Bearer ${token}` }});
+            const { data } = await apiClient.get('/departments');
             const filteredDepts = data.filter((d: Department) => d.name !== 'HR');
             setDepartments(filteredDepts);
 
             const counts: { [key: string]: number } = {};
             for (const dept of filteredDepts) {
-                const res = await axios.get(`${API_URL}/users`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                    params: { department: dept.name }
-                });
+                const res = await apiClient.get('/users', { params: { department: dept.name } });
                 counts[dept.id] = res.data.length;
             }
             setEmployeeCounts(counts);
@@ -94,23 +89,18 @@ const Schedule = () => {
   useEffect(() => {
     const { startOfWeek, endOfWeek } = getWeekStartAndEnd(currentDate);
 
-    const source = axios.CancelToken.source();
-
     const fetchSchedule = async () => {
         try {
-          const token = localStorage.getItem('access_token');
-          const response = await axios.get(`${API_URL}/schedules`, {
-            headers: { Authorization: `Bearer ${token}` },
+          const response = await apiClient.get('/schedules', {
             params: { startDate: startOfWeek.toISOString(), endDate: endOfWeek.toISOString() },
-            cancelToken: source.token
           });
-    
+
           const newSchedule: { [key: string]: any } = {};
           response.data.forEach((item: any) => {
             const itemDate = new Date(item.date);
             const dayIndex = itemDate.getUTCDay();
             const timeIndex = timeSlots.findIndex(slot => slot.startsWith(item.shift.startTime));
-            
+
             if (dayIndex >= 1 && dayIndex <= 5 && timeIndex !== -1) {
               const key = `${dayIndex - 1}-${timeIndex}`;
               newSchedule[key] = {
@@ -124,23 +114,15 @@ const Schedule = () => {
             }
           });
           setSchedule(newSchedule);
-    
+
         } catch (error) {
-          if (axios.isCancel(error)) {
-            console.log('Request canceled:', error.message);
-          } else {
             console.error("Failed to fetch schedule", error);
-          }
         }
     }
 
     fetchSchedule();
-
-    return () => {
-        source.cancel('Component unmounted');
-    }
   }, [currentDate, timeSlots, getWeekStartAndEnd]);
-  
+
   const handleDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
     if (!destination || source.droppableId === destination.droppableId) return;
@@ -180,8 +162,7 @@ const Schedule = () => {
     ];
 
     try {
-        const token = localStorage.getItem('access_token');
-        await axios.patch(`${API_URL}/schedules`, { updates }, { headers: { Authorization: `Bearer ${token}` } });
+        await apiClient.patch('/schedules', { updates });
         toast({
             variant: "success",
             title: t('schedule_page.toast.success.title'),
@@ -230,7 +211,7 @@ const Schedule = () => {
 
   const renderModalContent = () => {
     if (isModalLoading) return <p>{t('schedule_page.modal.loading')}</p>;
-    
+
     const manager = selectedDepartmentUsers.find(u => u.role === 'MANAGER' || u.role === 'DHR');
     const teamLeader = selectedDepartmentUsers.find(u => u.role === 'TEAM_LEADER');
     const employees = selectedDepartmentUsers.filter(u => u.role === 'EMPLOYEE');
@@ -286,7 +267,7 @@ const Schedule = () => {
           </div>
         </CardContent>
       </Card>
-      
+
       <Card className="dark:bg-gray-800 dark:border-gray-700">
         <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="dark:text-white">{t('schedule_page.weekly_schedule_grid')}</CardTitle>
@@ -335,8 +316,8 @@ const Schedule = () => {
                                   ref={provided.innerRef}
                                   {...provided.droppableProps}
                                   className={`min-h-[40px] flex items-center justify-center ${snapshot.isDraggingOver && isHrRole ? 'bg-blue-50 dark:bg-blue-900/30 rounded-lg' : ''}`}>
-                                  <Draggable 
-                                    draggableId={`${cellKey}-${cellData.departmentName}`} 
+                                  <Draggable
+                                    draggableId={`${cellKey}-${cellData.departmentName}`}
                                     index={0}
                                     isDragDisabled={!isHrRole}
                                   >
@@ -346,9 +327,9 @@ const Schedule = () => {
                                         {...provided.draggableProps}
                                         {...provided.dragHandleProps}
                                         className={`${snapshot.isDragging ? 'transform rotate-6 scale-105' : ''}`}>
-                                        <Badge 
-                                          variant="secondary" 
-                                          style={{backgroundColor: style.bgColor, color: style.textColor}} 
+                                        <Badge
+                                          variant="secondary"
+                                          style={{backgroundColor: style.bgColor, color: style.textColor}}
                                           className={`font-medium px-3 py-1 ${isHrRole ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} transition-transform hover:scale-105`}
                                         >
                                           {cellData.departmentName}

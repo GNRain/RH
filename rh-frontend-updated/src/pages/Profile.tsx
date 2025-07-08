@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../api'; // --- Use the new API client ---
 import { useTranslation } from 'react-i18next';
-import { VscAccount, VscKey, VscSave } from 'react-icons/vsc';
+import { VscKey, VscSave } from 'react-icons/vsc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import API_URL from '../config';
-
 
 interface UserProfile {
   name: string;
@@ -38,10 +36,8 @@ const Profile = () => {
     const fetchUserProfile = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('access_token');
-        const response = await axios.get(`${API_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // --- Use apiClient for the request ---
+        const response = await apiClient.get('/users/me');
         setUser(response.data);
       } catch (err) {
         setError('Failed to load user profile.');
@@ -65,7 +61,7 @@ const Profile = () => {
     }
     setShow2faInput(true);
   };
-  
+
   const handlePasswordChangeSubmit = async () => {
     if (!twoFactorCode) {
         return setError(t('profile_page.error_2fa_required'));
@@ -75,10 +71,9 @@ const Profile = () => {
     setSuccess('');
 
     try {
-        const token = localStorage.getItem('access_token');
-        const response = await axios.patch(`${API_URL}/users/me/password`, 
-            { oldPassword, newPassword, twoFactorCode },
-            { headers: { Authorization: `Bearer ${token}` } }
+        // --- Use apiClient for the patch request ---
+        const response = await apiClient.patch('/users/me/password',
+            { oldPassword, newPassword, twoFactorCode }
         );
         setSuccess(response.data.message);
         setOldPassword('');
@@ -185,7 +180,7 @@ const Profile = () => {
                 <Input id="2fa-code" type="text" value={twoFactorCode} onChange={e => setTwoFactorCode(e.target.value)} required />
               </div>
             )}
-            
+
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {success && <p className="text-green-500 text-sm">{success}</p>}
 

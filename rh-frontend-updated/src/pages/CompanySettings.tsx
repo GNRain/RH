@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react';
+import apiClient from '../api'; // --- Use the new API client ---
 import { useTranslation } from 'react-i18next';
 import { VscAdd, VscEdit, VscTrash } from 'react-icons/vsc';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,14 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Settings, Users, Clock, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import API_URL from '../config';
 
 type Shift = {
   id: string;
@@ -38,29 +33,26 @@ const CompanySettings = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // --- Modal State ---
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
   const [modalType, setModalType] = useState<'department' | 'position'>('department');
   const [currentItem, setCurrentItem] = useState<Department | Position | null>(null);
   
-  // State for the department form
+  // Form state
   const [deptName, setDeptName] = useState('');
   const [deptColor, setDeptColor] = useState('#CCCCCC');
   const [defaultShiftId, setDefaultShiftId] = useState<string | undefined>(undefined);
-  
-  // State for the position form
   const [posName, setPosName] = useState('');
-
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
+      // --- Use apiClient for all requests ---
       const [deptRes, posRes, shiftRes] = await Promise.all([
-        axios.get(`${API_URL}/departments`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_URL}/positions`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_URL}/shift`, { headers: { Authorization: `Bearer ${token}` } })
+        apiClient.get('/departments'),
+        apiClient.get('/positions'),
+        apiClient.get('/shift')
       ]);
       setDepartments(deptRes.data);
       setPositions(posRes.data);
@@ -105,8 +97,7 @@ const CompanySettings = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem('access_token');
-    const url = `${API_URL}/${modalType}s`;
+    const url = `/${modalType}s`;
     let payload;
 
     if (modalType === 'department') {
@@ -117,9 +108,9 @@ const CompanySettings = () => {
 
     try {
       if (modalMode === 'add') {
-        await axios.post(url, payload, { headers: { Authorization: `Bearer ${token}` } });
+        await apiClient.post(url, payload);
       } else if (currentItem) {
-        await axios.patch(`${url}/${currentItem.id}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+        await apiClient.patch(`${url}/${currentItem.id}`, payload);
       }
       fetchData();
       closeModal();
@@ -139,8 +130,7 @@ const CompanySettings = () => {
   const handleDelete = async (type: 'department' | 'position', id: string) => {
     if (window.confirm(t('settings_page.delete_confirm'))) {
       try {
-        const token = localStorage.getItem('access_token');
-        await axios.delete(`${API_URL}/${type}s/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        await apiClient.delete(`/${type}s/${id}`);
         fetchData();
         toast({
           title: "Success",

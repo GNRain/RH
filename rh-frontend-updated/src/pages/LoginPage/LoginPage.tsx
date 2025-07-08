@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../api'; // --- Use the new API client ---
 import Stepper, { Step } from '../../components/Stepper/Stepper';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import API_URL from '../../config';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginHeader } from '../../components/LoginHeader';
 import './LoginPage.css';
@@ -18,31 +17,36 @@ export function LoginPage() {
   const [partialToken, setPartialToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   // Logic functions remain the same
   const resetFlowState = () => { setError(''); };
   const handleNextStep = () => setStep(prev => prev + 1);
+
   const handleLoginSubmit = async () => {
     if (!cin || !password) return setError(t('login_page.error_cin_required'));
     resetFlowState(); setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { cin, password });
-      if (response.data.access_token) { setStep(4); login(response.data.access_token); } 
+      // --- Use apiClient for the request ---
+      const response = await apiClient.post('/auth/login', { cin, password });
+      if (response.data.access_token) { setStep(4); login(response.data.access_token); }
       else if (response.data.partial_token) { setPartialToken(response.data.partial_token); setStep(3); }
     } catch (err: any) {
       setError(err.response?.data?.message || 'An unexpected error occurred.');
     } finally { setLoading(false); }
   };
+
   const handle2faSubmit = async () => {
     if (!twoFactorCode) return setError(t('login_page.error_2fa_code_required'));
     setError(''); setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/auth/2fa/authenticate`, { partial_token: partialToken, code: twoFactorCode });
+      // --- Use apiClient for the request ---
+      const response = await apiClient.post('/auth/2fa/authenticate', { partial_token: partialToken, code: twoFactorCode });
       setStep(4); login(response.data.access_token);
     } catch (err: any) {
       setError(err.response?.data?.message || 'An unexpected error occurred.');
     } finally { setLoading(false); }
   };
+
   const handleBack = () => { resetFlowState(); setStep(prev => prev - 1); };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, currentStep: number) => {
     if (e.key === 'Enter') {
@@ -64,38 +68,37 @@ export function LoginPage() {
       </div>
 
       <LoginHeader />
-      
+
       <div className="login-form-wrapper">
         <Stepper currentStep={step} onStepChange={setStep} disableStepIndicators={true}>
-          
+
           <Step>
-            {/* --- FIX ---: Ensure theme classes are present */}
             <h2 className="text-foreground text-2xl font-semibold">{t('login_page.welcome_title')}</h2>
             <p className="text-muted-foreground mt-2">{t('login_page.welcome_subtitle')}</p>
             <div className="step-footer" style={{ justifyContent: 'flex-end', marginTop: '2rem' }}>
               <button onClick={handleNextStep} className="button button-primary">{t('login_page.next_button')}</button>
             </div>
           </Step>
-          
+
           <Step>
             <h2 className="text-foreground text-2xl font-semibold">{t('login_page.credentials_title')}</h2>
             <div className="flex flex-col gap-4 mt-6">
-              <input 
-                placeholder={t('login_page.cin_placeholder')} 
-                value={cin} 
-                onChange={(e) => setCin(e.target.value)} 
+              <input
+                placeholder={t('login_page.cin_placeholder')}
+                value={cin}
+                onChange={(e) => setCin(e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, 2)}
-                disabled={loading} 
-                className="form-input" 
+                disabled={loading}
+                className="form-input"
               />
-              <input 
-                placeholder={t('login_page.password_placeholder')} 
-                type="password" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
+              <input
+                placeholder={t('login_page.password_placeholder')}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, 2)}
-                disabled={loading} 
-                className="form-input" 
+                disabled={loading}
+                className="form-input"
               />
             </div>
             <div className="text-right mt-3">
@@ -112,12 +115,12 @@ export function LoginPage() {
           <Step>
             <h2 className="text-foreground text-2xl font-semibold">{t('login_page.enter_2fa_title')}</h2>
             <div className="flex flex-col gap-4 mt-6">
-              <input 
-                placeholder={t('login_page.code_placeholder')} 
-                value={twoFactorCode} 
-                onChange={(e) => setTwoFactorCode(e.target.value)} 
+              <input
+                placeholder={t('login_page.code_placeholder')}
+                value={twoFactorCode}
+                onChange={(e) => setTwoFactorCode(e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, 3)}
-                disabled={loading} 
+                disabled={loading}
                 className="form-input text-center tracking-widest"
               />
             </div>
@@ -128,7 +131,7 @@ export function LoginPage() {
               </button>
             </div>
           </Step>
-          
+
           <Step>
             <h2 className="text-foreground text-2xl font-semibold">{t('login_page.success_title')}</h2>
             <p className="text-muted-foreground mt-2">{t('login_page.success_subtitle')}</p>

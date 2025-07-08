@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import API_URL from '../config';
+import apiClient from '../api'; // --- Use the new API client ---
 import { Check, X, User, Calendar, Hourglass } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// --- MODIFIED ---: Updated interface to reflect the correct data structure
 interface PendingRequest {
   id: string;
   fromDate: string;
@@ -21,7 +20,7 @@ interface PendingRequest {
     name: string;
     familyName: string;
     department: {
-        name: string; // The department is an object with a name property
+        name: string;
     };
   };
 }
@@ -35,7 +34,6 @@ const calculateDuration = (fromDate: string, toDate: string): number => {
     return Math.max(1, Math.round(differenceInDays) + 1);
 };
 
-// --- MODIFIED ---: Theme-aware color utility
 const getDepartmentVariant = (departmentName: string): 'default' | 'primary' | 'secondary' | 'destructive' | 'outline' => {
   if (departmentName.includes('IT')) return 'primary';
   if (departmentName.includes('HR')) return 'success';
@@ -51,15 +49,11 @@ const LeaveManagement = () => {
   const [selectedRequest, setSelectedRequest] = useState<PendingRequest | null>(null);
   const [declineReason, setDeclineReason] = useState('');
 
-  // The endpoint `/leave/pending-actions` seems correct for fetching items requiring manager action.
   const fetchPendingRequests = useCallback(async () => {
     setIsLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await axios.get(`${API_URL}/leave/pending-actions`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await apiClient.get('/leave/pending-actions');
       setRequests(response.data);
     } catch (err) {
       setError('Failed to fetch pending requests.');
@@ -74,12 +68,9 @@ const LeaveManagement = () => {
 
   const handleUpdateRequest = async (requestId: string, status: 'ACCEPTED' | 'DECLINED', comment?: string) => {
     try {
-        const token = localStorage.getItem('access_token');
-        // The action endpoint seems correct
-        await axios.patch(
-            `${API_URL}/leave/${requestId}/action`,
-            { status, comment },
-            { headers: { Authorization: `Bearer ${token}` } }
+        await apiClient.patch(
+            `/leave/${requestId}/action`,
+            { status, comment }
         );
         fetchPendingRequests();
         toast({
@@ -146,8 +137,7 @@ const LeaveManagement = () => {
                      <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                       <User className="h-5 w-5 text-primary" />
                       {request.user.name} {request.user.familyName}
-                    </h3>
-                      {/* --- THE FIX IS HERE --- */}
+                     </h3>
                       <Badge variant={getDepartmentVariant(request.user.department.name)}>
                         {request.user.department.name}
                       </Badge>

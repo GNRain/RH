@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import apiClient from '../api'; // --- Use the new API client ---
 import { VscSend } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,15 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ApprovalChain } from '@/components/ApprovalChain/ApprovalChain';
-import API_URL from '../config';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // --- NEW ---
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// --- Existing Interfaces ---
+// --- Interfaces ---
 type Approver = { name: string; familyName: string; } | null;
 type ApprovalStep = { id: string; approver: Approver; approverType: 'EMPLOYEE' | 'TEAM_LEADER' | 'MANAGER' | 'HR' | 'DHR'; status: 'PENDING' | 'ACCEPTED' | 'DECLINED'; comment: string | null; step: number; };
 interface LeaveRequestType { id: string; fromDate: string; toDate: string; reason: string; overallStatus: 'PENDING' | 'ACCEPTED' | 'DECLINED'; approvals: ApprovalStep[]; }
-
-// --- NEW ---: Interface for the leave balance
 interface LeaveBalance {
   annual: { balance: number };
   sick: { balance: number };
@@ -46,15 +43,15 @@ const LeaveRequest = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [reason, setReason] = useState('');
-  const [leaveType, setLeaveType] = useState('VACATION'); // --- NEW ---
+  const [leaveType, setLeaveType] = useState('VACATION');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [leaveHistory, setLeaveHistory] = useState<LeaveRequestType[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
 
-  const [leaveBalance, setLeaveBalance] = useState<LeaveBalance | null>(null); // --- NEW ---
-  const [isBalanceLoading, setIsBalanceLoading] = useState(true); // --- NEW ---
+  const [leaveBalance, setLeaveBalance] = useState<LeaveBalance | null>(null);
+  const [isBalanceLoading, setIsBalanceLoading] = useState(true);
 
   const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
 
@@ -67,10 +64,10 @@ const LeaveRequest = () => {
     setIsBalanceLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('access_token');
+      // --- Use apiClient for both requests ---
       const [historyRes, balanceRes] = await Promise.all([
-        axios.get(`${API_URL}/leave/my-requests`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_URL}/leave/balance`, { headers: { Authorization: `Bearer ${token}` } })
+        apiClient.get('/leave/my-requests'),
+        apiClient.get('/leave/balance')
       ]);
       setLeaveHistory(historyRes.data);
       setLeaveBalance(balanceRes.data);
@@ -92,11 +89,10 @@ const LeaveRequest = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('access_token');
-      await axios.post(
-        `${API_URL}/leave`,
-        { fromDate, toDate, reason, type: leaveType }, // --- UPDATED ---
-        { headers: { Authorization: `Bearer ${token}` } },
+      // --- Use apiClient for the post request ---
+      await apiClient.post(
+        '/leave',
+        { fromDate, toDate, reason, type: leaveType },
       );
       setFromDate('');
       setToDate('');
@@ -143,8 +139,7 @@ const LeaveRequest = () => {
                   <Input id="to-date" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} required />
                 </div>
               </div>
-              
-              {/* --- NEW: Leave Type Dropdown --- */}
+
               <div>
                 <Label htmlFor="leave-type">{t('leave_page.type_label')}</Label>
                 <Select value={leaveType} onValueChange={setLeaveType}>
