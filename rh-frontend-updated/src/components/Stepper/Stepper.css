@@ -1,0 +1,163 @@
+/* src/components/Stepper/Stepper.css (Pixel-Perfect Dark Theme) */
+
+/* The main card container */
+.step-circle-container {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%; /* Let the wrapper control the width */
+  border-radius: 1.5rem;
+  border: 1px solid hsl(var(--border)); /* Use theme-aware border */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background-color: hsl(var(--card)); /* Use theme-aware background */
+}
+
+/* The row of step indicators */
+.step-indicator-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 2rem 2.5rem;
+  box-sizing: border-box;
+}
+
+/* The content of each step */
+.step-default {
+  padding: 1rem 2.5rem 2rem 2.5rem;
+}
+
+/* --- FIX ---: Removed hardcoded text colors */
+.step-default h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.step-default p {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+/* Our form inputs */
+.form-input {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  background-color: hsl(var(--input)); /* Use theme-aware background */
+  border: 1px solid hsl(var(--border));  /* Use theme-aware border */
+  color: hsl(var(--foreground)); /* Use theme-aware text color */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.4);
+}
+.form-input::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+
+/* --- The Footer for our buttons --- */
+.step-footer {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid hsl(var(--border));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Base button styles */
+.button {
+  padding: 0.5rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* Primary "Next" button */
+.button-primary {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.button-primary:hover {
+  background-color: hsl(var(--primary) / 0.9);
+}
+
+/* "Previous" ghost button */
+.button-secondary {
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+}
+.button-secondary:hover {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--muted));
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Step Indicator styles --- */
+.step-indicator {
+  position: relative;
+  cursor: pointer;
+  outline: none;
+}
+
+.step-indicator-inner {
+  display: flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-weight: 600;
+  background-color: hsl(var(--muted)); /* Inactive circle color */
+  color: hsl(var(--muted-foreground));
+}
+
+.active-dot {
+  height: 0.75rem;
+  width: 0.75rem;
+  border-radius: 9999px;
+  background-color: hsl(var(--primary-foreground));
+}
+
+.step-number {
+  font-size: 0.875rem;
+}
+
+.step-connector {
+  position: relative;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  height: 0.125rem;
+  flex: 1;
+  border-radius: 0.25rem;
+  background-color: hsl(var(--muted));
+}
+
+.step-connector-inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background-color: hsl(var(--primary)); /* Completed line color */
+}
+
+.check-icon {
+  height: 1rem;
+  width: 1rem;
+  color: hsl(var(--primary-foreground));
+}
+.stepper-qr-expanded {
+  min-height: 520px;
+  transition: min-height 0.4s ease-in-out;
+}

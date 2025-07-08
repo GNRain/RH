@@ -1,11 +1,13 @@
+// rh-backend/src/schedules/schedules.service.ts
+
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { GetScheduleDto } from './dto/get-schedule.dto';
 import { BulkUpdateScheduleDto } from './dto/bulk-update-schedule.dto';
 import { NotificationService } from 'src/notifications/notification.service';
-import { eachDayOfInterval, startOfDay } from 'date-fns';
+import { eachDayOfInterval } from 'date-fns';
 import { GeneratedScheduleDto } from './dto/schedule.dto';
-
+//test
 @Injectable()
 export class SchedulesService {
     constructor(
@@ -15,9 +17,8 @@ export class SchedulesService {
 
     async findAll(query: GetScheduleDto): Promise<GeneratedScheduleDto[]> {
         const startDate = new Date(query.startDate);
-        const endDate = new Date(query.endDate);
+        const endDate = new Date(new Date(query.endDate).setUTCHours(23, 59, 59, 999));
 
-        // FIX: Fetch all departments EXCEPT 'HR'
         const departments = await this.prisma.department.findMany({
             where: {
                 name: {
@@ -84,7 +85,7 @@ export class SchedulesService {
         const { updates } = bulkUpdateDto;
 
         const transactions = updates.map(update => {
-            const date = startOfDay(new Date(update.date));
+            const date = new Date(update.date);
             return this.prisma.scheduleOverride.upsert({
                 where: {
                     date_departmentId: {

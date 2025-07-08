@@ -1,4 +1,5 @@
-import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsString, IsEnum } from 'class-validator';
+import { LeaveType } from '@prisma/client'; // Import the enum
 
 export class CreateLeaveRequestDto {
   @IsDateString()
@@ -12,4 +13,9 @@ export class CreateLeaveRequestDto {
   @IsString()
   @IsNotEmpty()
   reason: string;
+  
+  // --- ADD THIS LINE ---
+  @IsEnum(LeaveType)
+  @IsNotEmpty()
+  type: LeaveType;
 }

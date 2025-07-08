@@ -1,0 +1,391 @@
+{
+  "erpSystem": "ERP System",
+  "navigation": "Navigation",
+  "security": "Security",
+  "logout": "Logout",
+  "sidebar": {
+    "home": "Dashboard",
+    "my_leave": "My Leave",
+    "leave_management": "Leave Management",
+    "employees": "Employees",
+    "documents": "Documents",
+    "profile": "Profile",
+    "settings": "Company Settings"
+  },
+  "header": {
+    "greeting": "Welcome Back, {{name}}"
+  },
+  "login_page": {
+    "welcome_title": "Welcome to HRG portal",
+    "welcome_subtitle": "Proceed to sign-in",
+    "next_button": "Next",
+    "credentials_title": "Please enter your credentials",
+    "cin_placeholder": "CIN Number",
+    "password_placeholder": "Password",
+    "forgot_password_link": "Password Forgotten?",
+    "previous_button": "Previous",
+    "sign_in_button": "Sign In",
+    "signing_in_button": "Signing In...",
+    "setup_2fa_title": "Set up 2-Factor Authentication",
+    "setup_2fa_subtitle": "Scan the QR code with your authenticator app (e.g., Google Authenticator), then click \"Done\".",
+    "done_button": "Done",
+    "enter_2fa_title": "Please enter your 2FA code",
+    "code_placeholder": "6-Digit Code",
+    "verify_button": "Verify",
+    "verifying_button": "Verifying...",
+    "success_title": "You have been successfully signed-in!",
+    "success_subtitle": "We are redirecting you shortly."
+  },
+  "profile_page": {
+    "loading": "Loading profile...",
+    "personal_information": "Personal Information",
+    "full_name": "Full Name",
+    "email": "Email",
+    "cin": "CIN",
+    "department": "Department",
+    "position": "Position",
+    "join_date": "Join Date",
+    "error_load_profile": "Could not load profile information.",
+    "change_password_title": "Change Password",
+    "old_password": "Old Password",
+    "new_password": "New Password",
+    "password_length_rule": "Must be at least 8 characters long.",
+    "confirm_new_password": "Confirm New Password",
+    "enter_2fa_prompt": "Enter 2FA Code to Confirm",
+    "change_password_button": "Change Password",
+    "confirm_change_button": "Confirm Change",
+    "saving_button": "Saving...",
+    "error_password_length": "New password must be at least 8 characters long.",
+    "error_passwords_no_match": "New passwords do not match.",
+    "error_2fa_required": "Please enter your 2FA code to confirm.",
+    "error_failed_password_change": "Failed to change password."
+  },
+  "security_page": {
+    "title": "Security Settings",
+    "subtitle": "Manage your account security features.",
+    "2fa_title": "Two-Factor Authentication (2FA)",
+    "2fa_description": "Add an extra layer of security to your account. Once enabled, you will be required to enter a code from your authenticator app when you sign in.",
+    "2fa_enabled": "2FA is currently enabled on your account.",
+    "2fa_disabled": "2FA is not currently enabled on your account.",
+    "enable_2fa_button": "Enable 2FA",
+    "disable_2fa_button": "Disable 2FA",
+    "scan_qr_code": "Scan this QR code with your authenticator app.",
+    "verify_code_prompt": "Enter the 6-digit code from your app to verify.",
+    "verify_and_enable_button": "Verify & Enable"
+  },
+  "leave_management_page": {
+    "title": "Leave Management",
+    "subtitle": "Review and respond to pending leave requests from employees.",
+    "no_requests_title": "All Clear!",
+    "no_requests_subtitle": "There are no pending leave requests at this time.",
+    "decline_reason_prompt": "Decline Leave Request",
+    "decline_reason_label": "Please provide a reason for declining this request.",
+    "decline_button": "Decline Request",
+    "cancel_button": "Cancel",
+    "approve_title": "Approve",
+    "decline_title": "Decline",
+    "request_from": "Request from",
+    "department_tag": "Department",
+    "reason_label": "Reason",
+    "dates_label": "Dates",
+    "duration_label": "Duration",
+    "from_label": "From",
+    "to_label": "To"
+  },
+  "leave_page": {
+    "type_label": "Leave Type",
+    "annual_leave": "Annual Leave",
+    "sick_leave": "Sick Leave",
+    "personal_leave": "Personal Leave",
+    "days_remaining": "Days Remaining",
+    "balance_title": "Leave Balance",
+    "new_request_title": "New Leave Request",
+    "new_request_subtitle": "Select the dates and provide a reason for your leave.",
+    "from_label": "From",
+    "to_label": "To",
+    "reason_label": "Reason",
+    "reason_placeholder": "Please provide a reason for your leave...",
+    "submit_button": "Submit Request",
+    "submitting_button": "Submitting...",
+    "history_title": "Request History",
+    "history_loading": "Loading history...",
+    "history_empty": "You have no leave requests.",
+    "duration_label": "Duration",
+    "dates_label": "Dates",
+    "status_label": "Status",
+    "duration": "Duration: {{count}} day(s)"
+  },
+  "leave_statuses": {
+    "pending": "PENDING",
+    "accepted": "ACCEPTED",
+    "declined": "DECLINED"
+  },
+  "employees_page": {
+    "title": "Employees",
+    "subtitle": "Search, filter, and manage all employees in the organization.",
+    "search_placeholder": "Search by name, email, or CIN...",
+    "new_employee_button": "New Employee",
+    "no_results": "No employees found matching your criteria.",
+    "loading": "Loading...",
+    "table": {
+      "title": "Employees",
+      "employees": "Employees",
+      "name": "Name",
+      "contact": "Contact",
+      "position": "Position",
+      "department": "Department",
+      "status": "Status",
+      "actions": "Actions",
+      "edit_button": "Edit"
+    },
+    "create_modal": {
+      "title": "Create New Employee",
+      "first_name": "First Name",
+      "family_name": "Family Name",
+      "email": "Email",
+      "phone_number": "Phone Number",
+      "cin": "CIN",
+      "position": "Position",
+      "password": "Temporary Password",
+      "department": "Department",
+      "role": "Role",
+      "assign_tl": "Assign Team Leader",
+      "assign_manager": "Assign Manager",
+      "tl_note": "Selecting a Team Leader also assigns their Manager.",
+      "create_button": "Create Employee"
+    },
+    "edit_modal": {
+      "title": "Edit {{name}}",
+      "change_tl": "Change Team Leader",
+      "change_manager": "Change Manager",
+      "reset_2fa_button": "Reset 2FA",
+      "reset_2fa_confirm": "Are you sure you want to reset 2FA for {{name}}? They will be required to set it up again on their next login.",
+      "save_button": "Save Changes"
+    },
+    "departments": {
+      "all": "All Departments",
+      "hr": "HR",
+      "it": "IT",
+      "business": "Business",
+      "management": "Management"
+    },
+    "statuses": {
+      "all": "All Statuses",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "roles": {
+      "employee": "Employee",
+      "team_leader": "Team Leader",
+      "manager": "Manager",
+      "hr": "HR",
+      "dhr": "DHR"
+    },
+    "placeholders": {
+      "none": "None"
+    }
+  },
+"documents_page": {
+    "title": "Document Management",
+    "description": "Access and manage company documents and policies",
+    "add_new_document": "Add New Document",
+    "total_documents": "Total Documents",
+    "categories": "Categories",
+    "total_downloads": "Total Downloads",
+    "updated_this_week": "Updated This Week",
+    "search_placeholder": "Search documents by title or description...",
+    "all_categories": "All Categories",
+    "version": "Version",
+    "size": "Size",
+    "format": "Format",
+    "downloads": "Downloads",
+    "upload_date": "Upload Date",
+    "uploaded_on": "Uploaded on",
+    "preview": "Preview",
+    "download": "Download",
+    "no_documents_found_title": "No documents found",
+    "no_documents_found_filter_desc": "Try adjusting your search or filter criteria",
+    "no_documents_found_yet_desc": "No documents have been uploaded yet",
+    "add_modal_title": "Add New Document",
+    "doc_title_label": "Document Title *",
+    "doc_title_placeholder": "Enter document title",
+    "doc_desc_label": "Description",
+    "doc_desc_placeholder": "Enter document description",
+    "category": "Category *",
+    "select_category_placeholder": "Select category",
+    "version_placeholder": "e.g., v1.0",
+    "file_label": "Upload File *",
+    "uploading_button": "Uploading...",
+    "add_doc_button": "Add Document",
+    "delete_modal_title": "Delete Document",
+    "delete_modal_desc_1": "Are you sure you want to permanently delete",
+    "delete_modal_desc_2": "This action cannot be undone.",
+    "delete_modal_label": "To confirm, please type the document title below:"
+  },
+  "common": {
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "deleting": "Deleting..."
+  },
+  "toast": {
+    "error_title": "Error",
+    "success_title": "Success"
+  },
+  "reset_password_page": {
+    "step1_title": "Reset Your Password",
+    "step1_subtitle": "Please enter your CIN number to receive a reset code.",
+    "cin_placeholder": "CIN Number",
+    "cancel_button": "Cancel",
+    "send_code_button": "Send Code",
+    "sending_button": "Sending...",
+    "step2_title": "Enter Reset Code",
+    "step2_subtitle": "Please check your email for the 8-digit reset code and enter it below.",
+    "code_placeholder": "8-Digit Reset Code",
+    "back_button": "Back",
+    "verify_button": "Verify Code",
+    "verifying_button": "Verifying...",
+    "step3_title": "Choose a New Password",
+    "step3_subtitle": "Your new password must be at least 8 characters long.",
+    "new_password_placeholder": "New Password",
+    "confirm_password_placeholder": "Confirm New Password",
+    "reset_button": "Reset Password",
+    "resetting_button": "Resetting...",
+    "step4_title": "Password Reset Successful!",
+    "step4_subtitle": "We are redirecting you to the login page in 5 seconds...",
+    "error_cin_required": "Please enter your CIN.",
+    "error_code_required": "Please enter the reset code.",
+    "error_fields_required": "Please fill out both password fields.",
+    "error_password_length": "Password must be at least 8 characters long.",
+    "error_passwords_no_match": "Passwords do not match.",
+    "error_unexpected": "An unexpected error occurred."
+  },
+  "positions": {
+    "position_it_manager": "IT Manager",
+    "position_biz_manager": "Business Manager",
+    "position_law_manager": "Law Manager",
+    "position_it_lead": "IT Lead",
+    "position_biz_lead": "Business Lead",
+    "position_law_lead": "Law Lead",
+    "position_developer": "Developer",
+    "position_analyst": "Analyst",
+    "position_paralegal": "Paralegal",
+    "position_director_hr": "Director of Human Ressources",
+    "position_hr_generalist": "HR Generalist",
+    "position_eng_manager": "Engineering Manager",
+    "position_prod_manager": "Product Manager",
+    "position_senior_dev": "Senior Developer",
+    "position_lead_analyst": "Lead Analyst",
+    "position_software_dev": "Software Developer",
+    "position_business_analyst": "Business Analyst"
+  },
+  "settings_page": {
+    "title": "Company Settings",
+    "subtitle": "Manage core company data like departments and job positions.",
+    "departments_title": "Manage Departments",
+    "positions_title": "Manage Positions",
+    "add_department_button": "Add Department",
+    "add_position_button": "Add Position",
+    "edit_department_title": "Edit Department",
+    "edit_position_title": "Edit Position",
+    "create_department_title": "Create Department",
+    "create_position_title": "Create Position",
+    "add_position_title": "Add Position",
+    "name_label": "Name",
+    "color_label": "Color",
+    "actions_label": "Actions",
+    "default_shift_label": "Default Shift",
+    "delete_confirm": "Are you sure you want to delete this item? This action cannot be undone."
+  },
+  "dashboard": {
+    "title": "HR Dashboard",
+    "welcome": "Welcome!",
+    "welcome_subtitle": "Your personalized dashboard is coming soon.",
+    "loading": "Loading dashboard...",
+    "error": "Could not load dashboard data. Please check the backend server.",
+    "kpi": {
+      "total_employees": "Total Active Employees",
+      "pending_leaves": "Pending Leave Requests",
+      "new_hires": "New Hires This Month",
+      "avg_tenure": "Average Company Tenure (Years)"
+    },
+    "charts": {
+      "dept_employees": "Employees by Department",
+      "leave_types": "Leave Type Breakdown",
+      "gender_ratio": "Gender Ratio",
+      "age_distribution": "Age Distribution",
+      "headcount_trend": "Headcount Trend (Last 6 Months)",
+      "leave_by_dept": "Leave Days by Department"
+    },
+    "lists": {
+      "on_leave": "Who's On Leave Today",
+      "anniversaries": "Upcoming Anniversaries (Next 30 Days)",
+      "empty_leave": "Everyone is here!",
+      "empty_anniversaries": "No upcoming anniversaries."
+    }
+  },
+ "schedule_page": {
+    "title": "Team Schedule",
+    "subtitle": "View and manage the daily shift schedule for all departments.",
+    "weekly_schedule_grid": "Weekly Schedule Grid",
+    "timeSlot": "Time Slot",
+    "departments": "Departments",
+    "eight_hour_shifts": "8-hour shifts",
+    "weekly_hours": "Weekly Hours",
+    "hours": "hours",
+    "shift_pattern": "Shift Pattern",
+    "employees": "Employees",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "apply_changes": "Apply Changes",
+    "cancel": "Cancel",
+    "changes_applied": "Schedule updated successfully!",
+    "changes_failed": "Failed to apply changes.",
+    "modal": {
+      "title": "{{departmentName}} Department",
+      "loading": "Loading team details...",
+      "on_leave": "On Leave"
+    },
+    "toast": {
+      "invalid_move": {
+        "title": "Invalid Move",
+        "description": "Swapping shifts between different days is not allowed."
+      },
+      "success": {
+        "title": "Schedule Updated",
+        "description": "The shift change has been saved."
+      },
+      "error": {
+        "title": "Update Failed",
+        "description": "Could not save the schedule change."
+      },
+      "permission_denied": {
+      "title": "Permission Denied",
+      "description": "You do not have the necessary permissions to modify the schedule."
+      }
+    }
+  },
+   "approval_chain": {
+    "roles": {
+      "you": "You",
+      "team_leader": "Team Leader",
+      "manager": "Manager",
+      "hr": "Human Resources",
+      "dhr": "Director of HR"
+    },
+    "comment_label": "Comment"
+  },
+  "toast": {
+    "success_title": "Success",
+    "error_title": "Error",
+    "leave_request_submitted": "Leave request submitted successfully."
+  }
+}

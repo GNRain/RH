@@ -1,0 +1,71 @@
+/* src/components/ApprovalChain/ApprovalChain.css */
+
+.approval-chain-wrapper {
+  @apply w-full overflow-hidden rounded-lg bg-background;
+}
+
+.approval-chain-container {
+  @apply flex items-center gap-2 p-3 overflow-x-auto;
+  /* Custom scrollbar for better aesthetics */
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) hsl(var(--background));
+}
+
+.chain-step {
+  @apply flex shrink-0 cursor-pointer items-center gap-3 rounded-full border-2 p-2 pr-4 transition-all duration-300;
+}
+
+.step-icon svg {
+  @apply h-5 w-5;
+}
+
+.step-details {
+  @apply flex flex-col;
+}
+
+.step-role {
+  @apply text-sm font-semibold text-foreground;
+}
+
+.step-approver-name {
+  @apply text-xs text-muted-foreground flex items-center gap-1;
+}
+
+/* Status-specific colors */
+.status-pending {
+  @apply border-yellow-500/50 bg-yellow-500/10 text-yellow-400;
+}
+.status-accepted {
+  @apply border-green-500/50 bg-green-500/10 text-green-400;
+}
+.status-declined {
+  @apply border-red-500/50 bg-red-500/10 text-red-400;
+}
+
+/* Highlight the current active step */
+.chain-step-current {
+  @apply border-primary shadow-lg scale-105;
+  background-color: hsl(var(--primary) / 0.2);
+}
+
+.chain-step-current .step-role {
+  color: hsl(var(--primary-foreground));
+}
+
+/* Dim steps that are not pending when the request is still active */
+.chain-step:not(.status-pending):not(.chain-step-current) {
+  @apply opacity-60;
+}
+
+/* If the request is finalized (all steps done), make all steps fully visible */
+.chain-step-finalized {
+  @apply opacity-100;
+}
+
+.chain-connector {
+  @apply text-muted-foreground flex-shrink-0;
+}
+
+.chain-connector svg {
+  @apply h-5 w-5;
+}

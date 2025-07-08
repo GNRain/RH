@@ -1,0 +1,28 @@
+# Docker Compose file version
+version: '3.8'
+
+# Define all the services that make up our application
+services:
+  # The Backend Service
+  backend:
+    container_name: rh_backend_service
+    build:
+      context: ./rh-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+
+  # The Frontend Service
+  frontend:
+    container_name: rh_frontend_service
+    build:
+      context: ./rh-frontend-updated
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      # Map port 8080 on your machine to port 80 in the container
+      - "8080:80"
