@@ -45,13 +45,11 @@ export class AuthController {
     return this.authService.turnOnTwoFactorAuth(twoFactorCode, req.user.sub);
   }
 
-  // --- NEW ENDPOINT START ---
   @Post('2fa/turn-off')
   @UseGuards(AuthGuard('jwt'))
   async turnOffTwoFactorAuth(@Request() req, @Body('code') twoFactorCode: string) {
     return this.authService.turnOffTwoFactorAuth(twoFactorCode, req.user.sub);
   }
-  // --- NEW ENDPOINT END ---
 
   @Public()
   @Post('forgot-password')
@@ -65,7 +63,9 @@ export class AuthController {
     return this.authService.verifyResetCode(verifyResetCodeDto);
   }
 
-  @Post('reset-password')
+  // --- THIS IS THE FIX ---
+  // The route is changed from 'reset-password' to 'set-new-password'
+  @Post('set-new-password')
   @UseGuards(AuthGuard('jwt'))
   async resetPassword(@Request() req, @Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(req.user.sub, resetPasswordDto);

@@ -93,11 +93,12 @@
     "to_label": "À"
   },
   "leave_page": {
-    "balance_title": "Solde de Congés",
-    "days_remaining": "Jours Restants",
+    "type_label": "Type de Congé",
     "annual_leave": "Congé Annuel",
     "sick_leave": "Congé Maladie",
-    "special_leave": "Congé Spécial",
+    "personal_leave": "Congé Personnel",
+    "days_remaining": "Jours Restants",
+    "balance_title": "Solde de Congés",
     "new_request_title": "Nouvelle Demande de Congé",
     "new_request_subtitle": "Sélectionnez les dates et donnez une raison pour votre congé.",
     "from_label": "Du",

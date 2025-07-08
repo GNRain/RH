@@ -93,11 +93,12 @@
     "to_label": "To"
   },
   "leave_page": {
-    "balance_title": "Leave Balance",
-    "days_remaining": "Days Remaining",
+    "type_label": "Leave Type",
     "annual_leave": "Annual Leave",
     "sick_leave": "Sick Leave",
-    "special_leave": "Special Leave",
+    "personal_leave": "Personal Leave",
+    "days_remaining": "Days Remaining",
+    "balance_title": "Leave Balance",
     "new_request_title": "New Leave Request",
     "new_request_subtitle": "Select the dates and provide a reason for your leave.",
     "from_label": "From",

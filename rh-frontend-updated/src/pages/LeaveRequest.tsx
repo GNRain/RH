@@ -8,23 +8,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-// Make sure this path is correct for your project structure
 import { ApprovalChain } from '@/components/ApprovalChain/ApprovalChain';
 import API_URL from '../config';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // --- NEW ---
 
-type Approver = {
-  name: string; familyName: string;
-} | null;
-type ApprovalStep = {
-  id: string; approver: Approver;
-  approverType: 'EMPLOYEE' | 'TEAM_LEADER' | 'MANAGER' | 'HR' | 'DHR';
-  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
-  comment: string | null; step: number;
-};
-interface LeaveRequestType {
-  id: string; fromDate: string; toDate: string; reason: string;
-  overallStatus: 'PENDING' | 'ACCEPTED' | 'DECLINED';
-  approvals: ApprovalStep[];
+// --- Existing Interfaces ---
+type Approver = { name: string; familyName: string; } | null;
+type ApprovalStep = { id: string; approver: Approver; approverType: 'EMPLOYEE' | 'TEAM_LEADER' | 'MANAGER' | 'HR' | 'DHR'; status: 'PENDING' | 'ACCEPTED' | 'DECLINED'; comment: string | null; step: number; };
+interface LeaveRequestType { id: string; fromDate: string; toDate: string; reason: string; overallStatus: 'PENDING' | 'ACCEPTED' | 'DECLINED'; approvals: ApprovalStep[]; }
+
+// --- NEW ---: Interface for the leave balance
+interface LeaveBalance {
+  annual: { balance: number };
+  sick: { balance: number };
+  personal: { balance: number };
 }
 
 const calculateDuration = (fromDate: string, toDate: string): number => {
@@ -35,17 +32,12 @@ const calculateDuration = (fromDate: string, toDate: string): number => {
   return Math.max(1, Math.round(differenceInDays) + 1);
 };
 
-// This now uses theme-aware CSS classes from your shadcn/ui setup
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "ACCEPTED":
-      return "bg-success text-success-foreground";
-    case "PENDING":
-      return "bg-secondary text-secondary-foreground";
-    case "DECLINED":
-      return "bg-destructive text-destructive-foreground";
-    default:
-      return "bg-muted text-muted-foreground";
+    case "ACCEPTED": return "bg-success text-success-foreground";
+    case "PENDING": return "bg-secondary text-secondary-foreground";
+    case "DECLINED": return "bg-destructive text-destructive-foreground";
+    default: return "bg-muted text-muted-foreground";
   }
 };
 
@@ -54,39 +46,45 @@ const LeaveRequest = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [reason, setReason] = useState('');
+  const [leaveType, setLeaveType] = useState('VACATION'); // --- NEW ---
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [leaveHistory, setLeaveHistory] = useState<LeaveRequestType[]>([]);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
 
-  // --- NEW ---: State to track the expanded row
+  const [leaveBalance, setLeaveBalance] = useState<LeaveBalance | null>(null); // --- NEW ---
+  const [isBalanceLoading, setIsBalanceLoading] = useState(true); // --- NEW ---
+
   const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
 
-  // --- NEW ---: Toggle function
   const handleToggleRow = (requestId: string) => {
     setExpandedRequestId(currentId => (currentId === requestId ? null : requestId));
   };
 
-  const fetchLeaveHistory = useCallback(async () => {
+  const fetchLeaveData = useCallback(async () => {
     setIsHistoryLoading(true);
+    setIsBalanceLoading(true);
     setError('');
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get(`${API_URL}/leave/my-requests`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setLeaveHistory(response.data);
+      const [historyRes, balanceRes] = await Promise.all([
+        axios.get(`${API_URL}/leave/my-requests`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/leave/balance`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      setLeaveHistory(historyRes.data);
+      setLeaveBalance(balanceRes.data);
     } catch (err: any) {
-      setError('Failed to fetch leave history.');
+      setError('Failed to fetch leave data.');
     } finally {
       setIsHistoryLoading(false);
+      setIsBalanceLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchLeaveHistory();
-  }, [fetchLeaveHistory]);
+    fetchLeaveData();
+  }, [fetchLeaveData]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -97,13 +95,14 @@ const LeaveRequest = () => {
       const token = localStorage.getItem('access_token');
       await axios.post(
         `${API_URL}/leave`,
-        { fromDate, toDate, reason },
+        { fromDate, toDate, reason, type: leaveType }, // --- UPDATED ---
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setFromDate('');
       setToDate('');
       setReason('');
-      await fetchLeaveHistory();
+      setLeaveType('VACATION');
+      await fetchLeaveData();
       toast({
         title: "Success",
         description: "Leave request submitted successfully",
@@ -128,7 +127,6 @@ const LeaveRequest = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Submit Leave Request */}
         <Card>
           <CardHeader>
             <CardTitle>{t('leave_page.new_request_title')}</CardTitle>
@@ -144,6 +142,21 @@ const LeaveRequest = () => {
                   <Label htmlFor="to-date">{t('leave_page.to_label')}</Label>
                   <Input id="to-date" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} required />
                 </div>
+              </div>
+              
+              {/* --- NEW: Leave Type Dropdown --- */}
+              <div>
+                <Label htmlFor="leave-type">{t('leave_page.type_label')}</Label>
+                <Select value={leaveType} onValueChange={setLeaveType}>
+                    <SelectTrigger id="leave-type">
+                        <SelectValue placeholder="Select leave type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="VACATION">{t('leave_page.annual_leave')}</SelectItem>
+                        <SelectItem value="SICK_LEAVE">{t('leave_page.sick_leave')}</SelectItem>
+                        <SelectItem value="PERSONAL">{t('leave_page.personal_leave')}</SelectItem>
+                    </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -161,31 +174,35 @@ const LeaveRequest = () => {
           </CardContent>
         </Card>
 
-        {/* Leave Balance */}
-         <Card>
+        <Card>
           <CardHeader>
             <CardTitle>{t('leave_page.balance_title')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                <span className="font-medium text-blue-900">{t('leave_page.annual_leave')}</span>
-                <span className="text-blue-700">18 {t('leave_page.days_remaining')}</span>
+            {isBalanceLoading ? (
+              <p>{t('leave_page.history_loading')}</p>
+            ) : leaveBalance ? (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                  <span className="font-medium text-blue-900">{t('leave_page.annual_leave')}</span>
+                  <span className="text-blue-700">{leaveBalance.annual.balance} {t('leave_page.days_remaining')}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                  <span className="font-medium text-green-900">{t('leave_page.sick_leave')}</span>
+                  <span className="text-green-700">{leaveBalance.sick.balance} {t('leave_page.days_remaining')}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+                  <span className="font-medium text-purple-900">{t('leave_page.personal_leave')}</span>
+                  <span className="text-purple-700">{leaveBalance.personal.balance} {t('leave_page.days_remaining')}</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                <span className="font-medium text-green-900">{t('leave_page.sick_leave')}</span>
-                <span className="text-green-700">12 {t('leave_page.days_remaining')}</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                <span className="font-medium text-purple-900">{t('leave_page.personal_leave')}</span>
-                <span className="text-purple-700">5 {t('leave_page.days_remaining')}</span>
-              </div>
-            </div>
+            ) : (
+              <p>Could not load leave balance.</p>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* --- MODIFIED ---: My Leave Requests Table */}
       <Card>
         <CardHeader>
           <CardTitle>{t('leave_page.history_title')}</CardTitle>
@@ -208,7 +225,6 @@ const LeaveRequest = () => {
                   <tr><td colSpan={4} className="text-center py-4">{t('leave_page.history_empty')}</td></tr>
                 ) : (
                   leaveHistory.map((request) => (
-                    // Use React.Fragment to group the main row and the details row
                     <React.Fragment key={request.id}>
                       <tr
                         className="border-b border-muted hover:bg-muted/50 cursor-pointer"
@@ -223,7 +239,6 @@ const LeaveRequest = () => {
                           </span>
                         </td>
                       </tr>
-                      {/* This is the new expandable row */}
                       {expandedRequestId === request.id && (
                         <tr className="bg-muted/20">
                           <td colSpan={4} className="p-4">

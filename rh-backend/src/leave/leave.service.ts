@@ -3,7 +3,7 @@
 import { Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLeaveRequestDto } from './dto/create-leave.dto';
-import { ApproverType, Prisma, Role, User, UserStatus, LeaveStatus } from '@prisma/client';
+import { ApproverType, Prisma, Role, User, UserStatus, LeaveStatus, LeaveType } from '@prisma/client';
 import { NotificationService } from 'src/notifications/notification.service';
 import { UpdateLeaveActionDto } from './dto/update-leave-action.dto';
 
@@ -26,32 +26,77 @@ export class LeaveService {
       throw new NotFoundException('User not found to calculate balance.');
     }
 
+    // --- Annual Leave Calculation ---
     let workDays = 0;
     let currentDate = new Date(user.joinDate);
     const today = new Date();
-
     while (currentDate <= today) {
       const dayOfWeek = currentDate.getDay();
       if (dayOfWeek !== 0 && dayOfWeek !== 6) { workDays++; }
       currentDate.setDate(currentDate.getDate() + 1);
     }
+    const totalEarnedAnnualLeave = Math.floor(workDays / 10);
 
-    const totalEarnedLeave = Math.floor(workDays / 10);
-    const daysTaken = user.leaveRequests.reduce((acc, req) => {
-      const duration = (new Date(req.toDate).getTime() - new Date(req.fromDate).getTime()) / (1000 * 3600 * 24) + 1;
-      return acc + Math.round(duration);
-    }, 0);
+    // --- Sick and Personal Leave Calculation ---
+    const currentYearStart = new Date(new Date().getFullYear(), 0, 1);
+    let annualLeaveTaken = 0;
+    let sickLeaveTaken = 0;
+    let personalLeaveTaken = 0;
 
-    const availableBalance = totalEarnedLeave - daysTaken;
-    return { totalEarnedLeave, daysTaken, availableBalance };
+    user.leaveRequests.forEach(req => {
+      const leaveStartDate = new Date(req.fromDate);
+      const duration = (new Date(req.toDate).getTime() - leaveStartDate.getTime()) / (1000 * 3600 * 24) + 1;
+      const roundedDuration = Math.round(duration);
+
+      switch (req.type) {
+        case LeaveType.VACATION:
+          annualLeaveTaken += roundedDuration;
+          break;
+        case LeaveType.SICK_LEAVE:
+          if (leaveStartDate >= currentYearStart) {
+            sickLeaveTaken += roundedDuration;
+          }
+          break;
+        case LeaveType.PERSONAL:
+          if (leaveStartDate >= currentYearStart) {
+            personalLeaveTaken += roundedDuration;
+          }
+          break;
+      }
+    });
+
+    return {
+      annual: {
+        allotment: totalEarnedAnnualLeave,
+        taken: annualLeaveTaken,
+        balance: totalEarnedAnnualLeave - annualLeaveTaken,
+      },
+      sick: {
+        allotment: user.sickLeaveAllotment,
+        taken: sickLeaveTaken,
+        balance: user.sickLeaveAllotment - sickLeaveTaken,
+      },
+      personal: {
+        allotment: user.personalLeaveAllotment,
+        taken: personalLeaveTaken,
+        balance: user.personalLeaveAllotment - personalLeaveTaken,
+      },
+    };
   }
 
   async create(createDto: CreateLeaveRequestDto, userId: string) {
     const balance = await this._calculateLeaveBalance(userId);
     const requestedDuration = (new Date(createDto.toDate).getTime() - new Date(createDto.fromDate).getTime()) / (1000 * 3600 * 24) + 1;
 
+    let availableBalance = 0;
+    switch(createDto.type) {
+      case 'VACATION': availableBalance = balance.annual.balance; break;
+      case 'SICK_LEAVE': availableBalance = balance.sick.balance; break;
+      case 'PERSONAL': availableBalance = balance.personal.balance; break;
+    }
+
     if (requestedDuration <= 0) throw new BadRequestException('The end date must be after the start date.');
-    if (balance.availableBalance < requestedDuration) throw new BadRequestException(`Insufficient leave balance. You have ${balance.availableBalance} days remaining, but this request is for ${requestedDuration} days.`);
+    if (availableBalance < requestedDuration) throw new BadRequestException(`Insufficient leave balance. You have ${availableBalance} days remaining for this leave type, but this request is for ${requestedDuration} days.`);
 
     const requester = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!requester) throw new NotFoundException('Requester not found.');
@@ -97,13 +142,13 @@ export class LeaveService {
         throw new BadRequestException('Invalid user role for creating leave requests.');
     }
 
-    // --- FIX: Transaction only handles the essential database writes ---
     const leaveRequest = await this.prisma.$transaction(async (tx) => {
       const newLeaveRequest = await tx.leaveRequest.create({ 
           data: { 
               fromDate: new Date(createDto.fromDate), 
               toDate: new Date(createDto.toDate), 
-              reason: createDto.reason, 
+              reason: createDto.reason,
+              type: createDto.type,
               userId: requester.id, 
               currentApproverId: initialApproverId, 
           }
@@ -119,13 +164,12 @@ export class LeaveService {
       return newLeaveRequest;
     });
 
-    // --- FIX: Notification logic is now outside the transaction ---
     if (initialNotificationTarget) {
       const notificationMessage = `A new leave request from ${requester.name} ${requester.familyName} requires your action.`;
       if (initialNotificationTarget.type === 'user') {
         await this.notificationService.createForUser(initialNotificationTarget.id, notificationMessage);
       } else if (initialNotificationTarget.type === 'department') {
-        await this.notificationService.createForDepartment('HR', notificationMessage); // Target HR specifically
+        await this.notificationService.createForDepartment('HR', `A leave request from ${requester.name} is ready for HR review.`);
       }
     }
 
