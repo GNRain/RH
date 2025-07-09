@@ -97,7 +97,14 @@ const Employee = () => {
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   const handleCreateFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setCreateFormData({ ...createFormData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let processedValue: string | number = value;
+
+    if (name === 'cin' || name === 'phoneNumber') {
+      // Filter out non-numeric characters
+      processedValue = value.replace(/[^0-9]/g, ''); // Keep only digits
+    }
+    setCreateFormData({ ...createFormData, [name]: processedValue });
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -142,10 +149,20 @@ const Employee = () => {
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    const payload = { ...editFormData };
+    const payload: any = { ...editFormData }; // Cast to any for dynamic property manipulation
     if (payload.role === 'EMPLOYEE' && payload.teamLeaderId) {
         const selectedTeamLeader = teamLeaders.find(tl => tl.id === payload.teamLeaderId);
         payload.managerId = selectedTeamLeader?.managerId;
+    }
+    // Rename teamLeaderId to teamLeader in the payload if it exists
+    if ('teamLeaderId' in payload && payload.teamLeaderId !== '') {
+      payload.teamLeader = payload.teamLeaderId;
+      delete payload.teamLeaderId;
+    }
+    // Rename managerId to manager in the payload if it exists
+    if ('managerId' in payload && payload.managerId !== '') {
+      payload.manager = payload.managerId;
+      delete payload.managerId;
     }
     try {
       await apiClient.patch(`/users/${editingUser.id}`, payload);
@@ -238,11 +255,11 @@ const Employee = () => {
               </div>
               <div>
                 <Label htmlFor="phoneNumber">{t('employees_page.create_modal.phone_number')}</Label>
-                <Input id="phoneNumber" name="phoneNumber" value={createFormData.phoneNumber} onChange={handleCreateFormChange} placeholder={t('employees_page.create_modal.phone_number_placeholder')} required />
+                <Input id="phoneNumber" name="phoneNumber" type="number" pattern="[0-9]*" value={createFormData.phoneNumber} onChange={handleCreateFormChange} placeholder={t('employees_page.create_modal.phone_number_placeholder')} required />
               </div>
               <div>
                 <Label htmlFor="cin">{t('employees_page.create_modal.cin')}</Label>
-                <Input id="cin" name="cin" value={createFormData.cin} onChange={handleCreateFormChange} placeholder={t('employees_page.create_modal.cin_placeholder')} required />
+                <Input id="cin" name="cin" type="number" pattern="[0-9]*" value={createFormData.cin} onChange={handleCreateFormChange} placeholder={t('employees_page.create_modal.cin_placeholder')} required />
               </div>
               <div>
                 <Label htmlFor="positionId">{t('employees_page.create_modal.position')}</Label>
@@ -439,7 +456,7 @@ const Employee = () => {
                                 </div>
                                 <div>
                                   <Label htmlFor="edit-phoneNumber">{t('employees_page.create_modal.phone_number')}</Label>
-                                  <Input id="edit-phoneNumber" name="phoneNumber" value={editFormData.phoneNumber || ''} onChange={handleEditFormChange} />
+                                  <Input id="edit-phoneNumber" name="phoneNumber" type="number" value={editFormData.phoneNumber || ''} onChange={handleEditFormChange} />
                                 </div>
                                 <div>
                                   <Label htmlFor="edit-positionId">{t('employees_page.create_modal.position')}</Label>

@@ -124,6 +124,11 @@ export function ApprovalChain({ approvals }: ApprovalChainProps) {
                         <span className="step-approver-name">
                           <RoleIcon className="h-3 w-3" /> {approverName}
                         </span>
+                        {step.status === 'DECLINED' && step.comment && (
+                          <span className="step-comment text-sm text-destructive-foreground mt-1">
+                            {t('approval_chain.comment_label')}: {step.comment}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </TooltipTrigger>

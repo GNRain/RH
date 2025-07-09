@@ -51,11 +51,11 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
-  teamLeaderId?: string;
+  teamLeader?: string; // Changed from teamLeaderId
   
   @IsString()
   @IsOptional()
-  managerId?: string;
+  manager?: string; // Changed from managerId
 
   @IsEnum(UserStatus)
   @IsOptional()

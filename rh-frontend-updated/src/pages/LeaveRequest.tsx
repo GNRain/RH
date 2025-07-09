@@ -31,7 +31,7 @@ const calculateDuration = (fromDate: string, toDate: string): number => {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "ACCEPTED": return "bg-success text-success-foreground";
+    case "ACCEPTED": return "bg-green-500 text-white";
     case "PENDING": return "bg-secondary text-secondary-foreground";
     case "DECLINED": return "bg-destructive text-destructive-foreground";
     default: return "bg-muted text-muted-foreground";
@@ -40,6 +40,7 @@ const getStatusColor = (status: string) => {
 
 const LeaveRequest = () => {
   const { t } = useTranslation();
+  const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [reason, setReason] = useState('');
@@ -132,11 +133,11 @@ const LeaveRequest = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="from-date">{t('leave_page.from_label')}</Label>
-                  <Input id="from-date" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} required />
+                  <Input id="from-date" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} required min={today} />
                 </div>
                 <div>
                   <Label htmlFor="to-date">{t('leave_page.to_label')}</Label>
-                  <Input id="to-date" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} required />
+                  <Input id="to-date" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} required min={today} />
                 </div>
               </div>
 

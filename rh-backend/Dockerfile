@@ -38,7 +38,9 @@ COPY --from=builder /app/prisma ./prisma
 
 # Copy and prepare the entrypoint script.
 COPY entrypoint.sh .
+RUN sed -i 's/\r$//' ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
+
 
 EXPOSE 3000
 

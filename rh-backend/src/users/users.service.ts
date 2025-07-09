@@ -26,18 +26,28 @@ export class UsersService {
     const roundsOfHashing = 10;
     const hashedPassword = await bcrypt.hash(createUserDto.password_to_be_hashed, roundsOfHashing);
 
+    const data: Prisma.UserCreateInput = {
+      email: createUserDto.email,
+      password: hashedPassword,
+      name: createUserDto.name,
+      familyName: createUserDto.familyName,
+      phoneNumber: createUserDto.phoneNumber,
+      cin: createUserDto.cin,
+      role: createUserDto.role,
+      // Connect to relations using IDs
+      department: { connect: { id: createUserDto.departmentId } }, // Use connect for department
+      position: { connect: { id: createUserDto.positionId } },   // Use connect for position
+    };
+
+    if (createUserDto.teamLeader) {
+      data.teamLeader = { connect: { id: createUserDto.teamLeader } };
+    }
+    if (createUserDto.manager) {
+      data.manager = { connect: { id: createUserDto.manager } };
+    }
+
     const newUser = await this.prisma.user.create({
-      data: {
-        email: createUserDto.email,
-        password: hashedPassword,
-        name: createUserDto.name, familyName: createUserDto.familyName,
-        phoneNumber: createUserDto.phoneNumber, cin: createUserDto.cin,
-        role: createUserDto.role,
-        teamLeaderId: createUserDto.teamLeaderId, managerId: createUserDto.managerId,
-        // Connect to relations using IDs
-        departmentId: createUserDto.departmentId,
-        positionId: createUserDto.positionId,
-      },
+      data,
     });
 
     const { password, ...result } = newUser;
@@ -126,10 +136,46 @@ export class UsersService {
    * @returns The updated user object, without the password.
    */
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const { password_to_be_hashed, ...restOfDto } = updateUserDto;
+    // Create a mutable copy and remove unwanted properties
+    const dtoCopy: any = { ...updateUserDto };
+    delete dtoCopy.department; // Remove the department object if it exists
+    delete dtoCopy.position;   // Remove the position object if it exists
+
+    const { password_to_be_hashed, teamLeader, manager, departmentId, positionId, ...restOfDto } = dtoCopy;
+    const data: Prisma.UserUpdateInput = { ...restOfDto };
+
+    if (teamLeader !== undefined) {
+      if (teamLeader === null) {
+        data.teamLeader = { disconnect: true };
+      } else {
+        data.teamLeader = { connect: { id: teamLeader } };
+      }
+    }
+
+    if (manager !== undefined) {
+      if (manager === null) {
+        data.manager = { disconnect: true };
+      } else {
+        data.manager = { connect: { id: manager } };
+      }
+    }
+
+    if (departmentId !== undefined && departmentId !== null) { // Only connect if provided and not null
+      data.department = { connect: { id: departmentId } };
+    }
+
+    if (positionId !== undefined && positionId !== null) { // Only connect if provided and not null
+      data.position = { connect: { id: positionId } };
+    }
+
+    if (password_to_be_hashed) {
+      const roundsOfHashing = 10;
+      data.password = await bcrypt.hash(password_to_be_hashed, roundsOfHashing);
+    }
+
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: restOfDto,
+      data,
     });
     const { password, ...result } = updatedUser;
     return result;
