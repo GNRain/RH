@@ -1,6 +1,6 @@
 // src/users/users.service.ts
 
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, ConflictException } from '@nestjs/common'; // --- ADD ConflictException
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
@@ -10,11 +10,16 @@ import * as fs from 'fs';             // --- ADD IMPORT
 import * as path from 'path';         // --- ADD IMPORT
 import { ChangePasswordDto } from './dto/change-password.dto'; // --- ADD IMPORT
 import { AuthService } from 'src/auth/auth.service'; //
+import { MailService } from 'src/mail/mail.service'; // --- ADD IMPORT
 import { Department, Prisma, User, Role, UserStatus } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService, private authService: AuthService,) {}
+  constructor(
+    private prisma: PrismaService,
+    private authService: AuthService,
+    private mailService: MailService, // --- ADD MailService
+  ) {}
 
   /**
    * Creates a new user in the database.
@@ -23,6 +28,15 @@ export class UsersService {
    * @returns The newly created user object, without the password hash.
    */
   async create(createUserDto: CreateUserDto) {
+    // Check if user with this email already exists
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: createUserDto.email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists.');
+    }
+
     const roundsOfHashing = 10;
     const hashedPassword = await bcrypt.hash(createUserDto.password_to_be_hashed, roundsOfHashing);
 
@@ -50,6 +64,9 @@ export class UsersService {
       data,
     });
 
+    // --- Send welcome email ---
+    await this.mailService.sendWelcomeEmail(newUser);
+
     const { password, ...result } = newUser;
     return result;
   }
@@ -71,7 +88,7 @@ export class UsersService {
 
     if (status) where.status = status;
     if (role) where.role = role;
-    if (department) where.department = { name: department }; // Filter by relation
+    if (department) where.department = { id: department }; // Filter by relation (using ID)
 
     if (search) {
       where.OR = [

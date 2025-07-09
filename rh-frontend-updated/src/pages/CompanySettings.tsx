@@ -101,7 +101,7 @@ const CompanySettings = () => {
     let payload;
 
     if (modalType === 'department') {
-        payload = { name: deptName, color: deptColor, defaultShiftId: defaultShiftId === 'none' ? null : defaultShiftId };
+        payload = { name: deptName, color: deptColor, defaultShiftId: (defaultShiftId === undefined || defaultShiftId === '') ? null : defaultShiftId };
     } else {
         payload = { name: posName };
     }

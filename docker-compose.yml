@@ -1,5 +1,4 @@
 # Docker Compose file version
-version: '3.8'
 
 # Define all the services that make up our application
 services:
@@ -14,6 +13,11 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       CORS_ORIGIN: ${CORS_ORIGIN}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
 
   # The Frontend Service
   frontend:

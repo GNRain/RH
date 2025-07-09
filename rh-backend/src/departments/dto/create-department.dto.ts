@@ -1,4 +1,4 @@
-import { IsHexColor, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsHexColor, IsNotEmpty, IsOptional, IsString, IsUUID, ValidateIf } from 'class-validator'; // --- ADD ValidateIf
 
 export class CreateDepartmentDto {
   @IsString()
@@ -10,8 +10,7 @@ export class CreateDepartmentDto {
   @IsNotEmpty()
   color: string;
 
-  // Add the optional defaultShiftId, ensuring it's a valid UUID
-  @IsUUID()
+  // Add the optional defaultShiftId, allowing it to be a string or null
   @IsOptional()
-  defaultShiftId?: string;
+  defaultShiftId?: string | null; // Allow null
 }
