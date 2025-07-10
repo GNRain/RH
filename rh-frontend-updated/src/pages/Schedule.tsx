@@ -24,11 +24,19 @@ interface Department {
     id: string; name: string; color: string;
 }
 
+interface Shift {
+    id: string;
+    name: string;
+    startTime: string;
+    endTime: string;
+}
+
 const Schedule = () => {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const [schedule, setSchedule] = useState<{ [key: string]: any }>({});
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [shifts, setShifts] = useState<Shift[]>([]);
   const [employeeCounts, setEmployeeCounts] = useState<{ [key: string]: number }>({});
   const [isHrRole, setIsHrRole] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,6 +68,9 @@ const Schedule = () => {
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController(); // Create AbortController
+    const signal = controller.signal; // Get signal
+
     const token = localStorage.getItem('access_token');
     if (token) {
       const decoded = jwtDecode<DecodedToken>(token);
@@ -68,34 +79,52 @@ const Schedule = () => {
 
     const fetchInitialData = async () => {
         try {
-            const { data } = await apiClient.get('/departments');
-            const filteredDepts = data.filter((d: Department) => d.name !== 'HR');
+            const [deptRes, userRes, shiftRes] = await Promise.all([
+                apiClient.get('/departments', { signal }),
+                apiClient.get('/users', { signal }),
+                apiClient.get('/shift', { signal }),
+            ]);
+
+            const filteredDepts = deptRes.data.filter((d: Department) => d.name !== 'HR');
             setDepartments(filteredDepts);
+            setShifts(shiftRes.data);
 
             const counts: { [key: string]: number } = {};
             for (const dept of filteredDepts) {
-                const res = await apiClient.get('/users', { params: { department: dept.name } });
-                counts[dept.id] = res.data.length;
+                const deptUsers = userRes.data.filter((user: any) => user.department.name === dept.name);
+                counts[dept.id] = deptUsers.length;
             }
             setEmployeeCounts(counts);
 
-        } catch (error) {
-            console.error("Failed to fetch initial data", error);
+        } catch (error: any) {
+            if (error.name === 'CanceledError') {
+                console.log('Fetch initial data aborted');
+            } else {
+                console.error("Failed to fetch initial data", error);
+            }
         }
     }
     fetchInitialData();
+
+    return () => { // Cleanup function
+      controller.abort(); // Abort requests on unmount
+    };
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController(); // Create AbortController
+    const signal = controller.signal; // Get signal
+
     const { startOfWeek, endOfWeek } = getWeekStartAndEnd(currentDate);
 
     const fetchSchedule = async () => {
         try {
           const response = await apiClient.get('/schedules', {
             params: { startDate: startOfWeek.toISOString(), endDate: endOfWeek.toISOString() },
+            signal, // Pass signal
           });
 
-          const newSchedule: { [key: string]: any } = {};
+          const newSchedule: { [key: string]: any[] } = {}; // Change to array of any
           response.data.forEach((item: any) => {
             const itemDate = new Date(item.date);
             const dayIndex = itemDate.getUTCDay();
@@ -103,28 +132,39 @@ const Schedule = () => {
 
             if (dayIndex >= 1 && dayIndex <= 5 && timeIndex !== -1) {
               const key = `${dayIndex - 1}-${timeIndex}`;
-              newSchedule[key] = {
+              if (!newSchedule[key]) {
+                newSchedule[key] = []; // Initialize as array if not exists
+              }
+              newSchedule[key].push({ // Push item to array
                 id: item.id,
                 date: item.date,
                 departmentName: item.department.name,
                 departmentColor: item.shift.color,
                 shiftId: item.shift.id,
                 departmentId: item.department.id,
-              };
+              });
             }
           });
           setSchedule(newSchedule);
 
-        } catch (error) {
-            console.error("Failed to fetch schedule", error);
+        } catch (error: any) { // Catch error as any to access error.name
+            if (error.name === 'CanceledError') {
+                console.log('Fetch schedule aborted');
+            } else {
+                console.error("Failed to fetch schedule", error);
+            }
         }
     }
 
     fetchSchedule();
+
+    return () => { // Cleanup function
+      controller.abort(); // Abort requests on unmount
+    };
   }, [currentDate, timeSlots, getWeekStartAndEnd]);
 
   const handleDragEnd = async (result: DropResult) => {
-    const { source, destination } = result;
+    const { source, destination, draggableId } = result; // Add draggableId here
     if (!destination || source.droppableId === destination.droppableId) return;
 
     if (!isHrRole) {
@@ -136,30 +176,65 @@ const Schedule = () => {
       return;
     }
 
-    const [sourceDayIndex] = source.droppableId.split('-').map(Number);
-    const [destDayIndex] = destination.droppableId.split('-').map(Number);
-
-    if (sourceDayIndex !== destDayIndex) {
-        toast({
-            variant: "alert",
-            title: t('schedule_page.toast.invalid_move.title'),
-            description: t('schedule_page.toast.invalid_move.description'),
-        });
-        return;
-    }
+    // No longer need sourceDayIndex and destDayIndex here as they are not used for the cross-day check
+    // The cross-day check was removed in the previous step.
 
     const sourceKey = source.droppableId;
     const destKey = destination.droppableId;
-    const sourceCell = schedule[sourceKey];
-    const destCell = schedule[destKey];
 
-    const newSchedule = { ...schedule, [sourceKey]: destCell, [destKey]: sourceCell };
-    setSchedule(newSchedule);
+    // Extract dragged department's data
+    // The draggableId is now `${cellKey}-${deptData.id}`
+    const [originalCellKey, draggedDepartmentId] = draggableId.split('|');
 
+    const sourceDepartments = schedule[originalCellKey];
+    if (!Array.isArray(sourceDepartments)) { // Defensive check
+      console.error("sourceDepartments is not an array:", sourceDepartments);
+      return;
+    }
+    const draggedDepartment = sourceDepartments.find((dept: any) => dept.id === draggedDepartmentId);
+
+    if (!draggedDepartment) { // This can happen if the item is not found in the source array
+      console.error("Dragged department not found in source cell:", draggedDepartmentId, originalCellKey);
+      return;
+    }
+
+    // Determine the new shift ID based on the destination cell's time slot
+    const [destDayIndex, destTimeIndex] = destKey.split('-').map(Number); // destDayIndex is still used for destTimeIndex
+    const destinationShiftName = timeSlots[destTimeIndex];
+    const destinationShift = (Array.isArray(shifts) ? shifts : []).find(s => s.startTime === destinationShiftName.split('-')[0]);
+
+    if (!destinationShift) {
+      toast({
+        variant: "destructive",
+        title: t('schedule_page.toast.error.title'),
+        description: "Could not find destination shift details.",
+      });
+      return;
+    }
+
+    const newShiftId = destinationShift.id;
+
+    // Construct the update payload for the dragged department
     const updates = [
-        { date: sourceCell.date, departmentId: sourceCell.departmentId, newShiftId: destCell.shiftId },
-        { date: destCell.date, departmentId: destCell.departmentId, newShiftId: sourceCell.shiftId },
+        { date: draggedDepartment.date, departmentId: draggedDepartment.departmentId, newShiftId: newShiftId },
     ];
+
+    // Optimistic update for frontend display
+    const newSchedule = { ...schedule };
+
+    // Remove from source cell
+    newSchedule[originalCellKey] = newSchedule[originalCellKey].filter((dept: any) => dept.id !== draggedDepartmentId);
+
+    // Add to destination cell
+    if (!newSchedule[destKey]) {
+      newSchedule[destKey] = [];
+    }
+    newSchedule[destKey].push({
+      ...draggedDepartment,
+      shiftId: newShiftId, // Update shiftId for the moved department
+    });
+
+    setSchedule(newSchedule); // Update frontend immediately
 
     try {
         await apiClient.patch('/schedules', { updates });
@@ -305,9 +380,7 @@ const Schedule = () => {
                       </td>
                       {weekdays.map((day, dayIndex) => {
                         const cellKey = `${dayIndex}-${timeIndex}`;
-                        const cellData = schedule[cellKey];
-                        if (!cellData) return <td key={`${day}-${timeSlot}`} className="border border-gray-200 dark:border-gray-600 py-4 px-4 text-center"></td>;
-                        const style = getDepartmentStyle(cellData.departmentName);
+                        const cellDepartments = schedule[cellKey]; // This is now an array
                         return (
                           <td key={`${day}-${timeSlot}`} className="border border-gray-200 dark:border-gray-600 py-4 px-4 text-center">
                             <Droppable droppableId={cellKey}>
@@ -315,28 +388,34 @@ const Schedule = () => {
                                 <div
                                   ref={provided.innerRef}
                                   {...provided.droppableProps}
-                                  className={`min-h-[40px] flex items-center justify-center ${snapshot.isDraggingOver && isHrRole ? 'bg-blue-50 dark:bg-blue-900/30 rounded-lg' : ''}`}>
-                                  <Draggable
-                                    draggableId={`${cellKey}-${cellData.departmentName}`}
-                                    index={0}
-                                    isDragDisabled={!isHrRole}
-                                  >
-                                    {(provided, snapshot) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        className={`${snapshot.isDragging ? 'transform rotate-6 scale-105' : ''}`}>
-                                        <Badge
-                                          variant="secondary"
-                                          style={{backgroundColor: style.bgColor, color: style.textColor}}
-                                          className={`font-medium px-3 py-1 ${isHrRole ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} transition-transform hover:scale-105`}
-                                        >
-                                          {cellData.departmentName}
-                                        </Badge>
-                                      </div>
-                                    )}
-                                  </Draggable>
+                                  className={`min-h-[40px] flex flex-col items-center justify-center gap-1 ${snapshot.isDraggingOver && isHrRole ? 'bg-blue-50 dark:bg-blue-900/30 rounded-lg' : ''}`}>
+                                  {cellDepartments && cellDepartments.map((deptData: any, index: number) => {
+                                    const style = getDepartmentStyle(deptData.departmentName);
+                                    return (
+                                      <Draggable
+                                        key={deptData.id} // Use department ID as key
+                                        draggableId={`${cellKey}|${deptData.id}`} // Use department ID in draggableId
+                                        index={index}
+                                        isDragDisabled={!isHrRole}
+                                      >
+                                        {(provided, snapshot) => (
+                                          <div
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            className={`${snapshot.isDragging ? 'transform rotate-6 scale-105' : ''}`}>
+                                            <Badge
+                                              variant="secondary"
+                                              style={{backgroundColor: style.bgColor, color: style.textColor}}
+                                              className={`font-medium px-3 py-1 ${isHrRole ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'} transition-transform hover:scale-105`}
+                                            >
+                                              {deptData.departmentName}
+                                            </Badge>
+                                          </div>
+                                        )}
+                                      </Draggable>
+                                    );
+                                  })}
                                   {provided.placeholder}
                                 </div>
                               )}

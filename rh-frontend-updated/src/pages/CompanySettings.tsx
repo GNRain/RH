@@ -80,7 +80,7 @@ const CompanySettings = () => {
         setDefaultShiftId(dept?.defaultShiftId || undefined);
     } else {
         const pos = item as Position;
-        setPosName(item ? (t(`positions.${pos.name}`)) : '');
+        setPosName(pos ? pos.name : '');
     }
     
     setIsModalOpen(true);
@@ -103,7 +103,7 @@ const CompanySettings = () => {
     if (modalType === 'department') {
         payload = { name: deptName, color: deptColor, defaultShiftId: (defaultShiftId === undefined || defaultShiftId === '') ? null : defaultShiftId };
     } else {
-        payload = { name: posName };
+        payload = { name: t(posName) };
     }
 
     try {
@@ -220,7 +220,7 @@ const CompanySettings = () => {
               <tbody>
                 {positions.map(pos => (
                   <tr key={pos.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium">{t(`positions.${pos.name}`)}</td>
+                    <td className="py-3 px-4 font-medium">{t(pos.name)}</td>
                     <td className="py-3 px-4">
                       <Button variant="destructive" size="sm" onClick={() => handleDelete('position', pos.id)}>
                         <VscTrash />
