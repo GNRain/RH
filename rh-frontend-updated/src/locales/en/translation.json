@@ -58,12 +58,17 @@
     "error_password_length": "New password must be at least 8 characters long.",
     "error_passwords_no_match": "New passwords do not match.",
     "error_2fa_required": "Please enter your 2FA code to confirm.",
-    "error_failed_password_change": "Failed to change password."
+    "error_failed_password_change": "Failed to change password.",
+    "personal_info_subtitle": "Manage your personal information and preferences",
+    "personal_details_description": "Update your personal details below",
+    "password_update_description": "Update your password below"
   },
   "security_page": {
     "title": "Security Settings",
     "subtitle": "Manage your account security features.",
     "2fa_title": "Two-Factor Authentication (2FA)",
+    "2fa_label": "Two-Factor Authentication",
+
     "2fa_description": "Add an extra layer of security to your account. Once enabled, you will be required to enter a code from your authenticator app when you sign in.",
     "2fa_enabled": "2FA is currently enabled on your account.",
     "2fa_disabled": "2FA is not currently enabled on your account.",
@@ -71,7 +76,19 @@
     "disable_2fa_button": "Disable 2FA",
     "scan_qr_code": "Scan this QR code with your authenticator app.",
     "verify_code_prompt": "Enter the 6-digit code from your app to verify.",
-    "verify_and_enable_button": "Verify & Enable"
+    "verify_and_enable_button": "Verify & Enable",
+    "generate_qr_error": "Failed to generate QR code.",
+    "code_length_error": "Code must be 6 digits.",
+    "invalid_code_error": "Invalid 2FA code.",
+    "enable_success": "2FA enabled successfully!",
+    "disable_success": "2FA disabled successfully!",
+    "enable_modal_title": "Enable Two-Factor Authentication",
+    "enable_modal_desc": "Scan the QR code with your authenticator app and enter the code to verify.",
+    "enter_code": "Enter the 6-digit code from your app to verify.",
+    "verify_button": "Verify & Enable",
+    "disable_modal_title": "Disable Two-Factor Authentication",
+    "disable_modal_desc": "Enter your 2FA code to confirm disabling Two-Factor Authentication.",
+    "enter_code_to_disable": "Enter 2FA Code to Disable"
   },
   "leave_management_page": {
     "title": "Leave Management",
@@ -304,6 +321,8 @@
     "create_position_title": "Create Position",
     "add_position_title": "Add Position",
     "name_label": "Name",
+    "name_en_label": "Name in English",
+    "name_fr_label": "Name in French",
     "color_label": "Color",
     "actions_label": "Actions",
     "default_shift_label": "Default Shift",

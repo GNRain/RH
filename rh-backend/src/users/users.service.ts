@@ -82,6 +82,7 @@ export class UsersService {
     department?: string; // Now a string to filter by name
     status?: UserStatus;
     role?: Role;
+    lang?: string;
   }) {
     const { search, department, status, role } = params;
     const where: Prisma.UserWhereInput = {};
@@ -104,11 +105,21 @@ export class UsersService {
       // --- NEW: Include the names from the related tables ---
       include: {
         department: { select: { name: true } },
-        position: { select: { name: true } },
+        position: {
+          include: {
+            translations: true,
+          },
+        },
       },
     });
-    // We don't need to delete the password as it's not selected.
-    return users;
+
+    return users.map(user => ({
+      ...user,
+      position: {
+        ...user.position,
+        name: user.position.translations.find(t => t.languageCode === params.lang)?.translatedName || user.position.defaultName,
+      },
+    }));
   }
 
   async resetTwoFactor(userId: string) {
@@ -129,13 +140,17 @@ export class UsersService {
    * @returns A single user object, without the password hash.
    * @throws NotFoundException if a user with the given ID is not found.
    */
-   async findOne(id: string) {
+   async findOne(id: string, lang?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       // --- NEW: Include relations ---
       include: {
         department: true,
-        position: true,
+        position: {
+          include: {
+            translations: true,
+          },
+        },
       },
     });
 
@@ -143,8 +158,18 @@ export class UsersService {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
 
+    const translatedPositionName = lang
+      ? user.position.translations.find(t => t.languageCode === lang)?.translatedName
+      : user.position.defaultName;
+
     const { password, ...result } = user;
-    return result;
+    return {
+      ...result,
+      position: {
+        ...user.position,
+        name: translatedPositionName || user.position.defaultName,
+      },
+    };
   }
   /**
    * Updates a user's data.
@@ -238,7 +263,7 @@ export class UsersService {
     pdfDoc.text(`This is to certify that Mr./Ms. ${fullName}, holder of CIN n° ${user.cin}, is currently employed by our company, Human Ressources Ghaith, since ${joinDate}.`);
     pdfDoc.moveDown();
     // --- UPDATED: Use the position name from the relation ---
-    pdfDoc.text(`Mr./Ms. ${user.familyName} holds the position of ${user.position.name}.`);
+    pdfDoc.text(`Mr./Ms. ${user.familyName} holds the position of ${user.position.defaultName}.`);
     // ... (rest of PDF generation)
     pdfDoc.moveDown();
     pdfDoc.text('This certificate is issued to serve for whatever legal purpose it may serve.');

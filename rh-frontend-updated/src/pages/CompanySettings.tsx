@@ -23,11 +23,13 @@ type Department = {
 };
 type Position = {
   id: string;
-  name: string;
+  defaultName: string;
+  name: string; // This will be the translated name from the backend
+  translations?: { languageCode: string; translatedName: string }[];
 };
 
 const CompanySettings = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -43,7 +45,8 @@ const CompanySettings = () => {
   const [deptName, setDeptName] = useState('');
   const [deptColor, setDeptColor] = useState('#CCCCCC');
   const [defaultShiftId, setDefaultShiftId] = useState<string | undefined>(undefined);
-  const [posName, setPosName] = useState('');
+  const [posNameEn, setPosNameEn] = useState('');
+  const [posNameFr, setPosNameFr] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -51,7 +54,7 @@ const CompanySettings = () => {
       // --- Use apiClient for all requests ---
       const [deptRes, posRes, shiftRes] = await Promise.all([
         apiClient.get('/departments'),
-        apiClient.get('/positions'),
+        apiClient.get('/positions', { params: { lang: i18n.language.split('-')[0] } }),
         apiClient.get('/shift')
       ]);
       setDepartments(deptRes.data);
@@ -65,8 +68,25 @@ const CompanySettings = () => {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const fetchInitialData = async () => {
+      setLoading(true);
+      try {
+        const [deptRes, posRes, shiftRes] = await Promise.all([
+          apiClient.get('/departments'),
+          apiClient.get('/positions', { params: { lang: i18n.language.split('-')[0] } }),
+          apiClient.get('/shift')
+        ]);
+        setDepartments(deptRes.data);
+        setPositions(posRes.data);
+        setShifts(shiftRes.data);
+      } catch (error) {
+        console.error("Failed to fetch initial data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInitialData();
+  }, [i18n.language]);
 
   const openModal = (mode: 'add' | 'edit', type: 'department' | 'position', item: Department | Position | null = null) => {
     setModalMode(mode);
@@ -80,7 +100,8 @@ const CompanySettings = () => {
         setDefaultShiftId(dept?.defaultShiftId || undefined);
     } else {
         const pos = item as Position;
-        setPosName(pos ? pos.name : '');
+        setPosNameEn(pos ? pos.defaultName : '');
+        setPosNameFr(pos ? (pos.translations?.find(t => t.languageCode === 'fr')?.translatedName || '') : '');
     }
     
     setIsModalOpen(true);
@@ -92,7 +113,8 @@ const CompanySettings = () => {
     setDeptName('');
     setDeptColor('#CCCCCC');
     setDefaultShiftId(undefined);
-    setPosName('');
+    setPosNameEn('');
+    setPosNameFr('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,7 +125,12 @@ const CompanySettings = () => {
     if (modalType === 'department') {
         payload = { name: deptName, color: deptColor, defaultShiftId: (defaultShiftId === undefined || defaultShiftId === '') ? null : defaultShiftId };
     } else {
-        payload = { name: t(posName) };
+        payload = {
+            defaultName: posNameEn,
+            translations: [
+                { languageCode: 'fr', translatedName: posNameFr }
+            ]
+        };
     }
 
     try {
@@ -220,11 +247,16 @@ const CompanySettings = () => {
               <tbody>
                 {positions.map(pos => (
                   <tr key={pos.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium">{t(pos.name)}</td>
+                    <td className="py-3 px-4 font-medium">{pos.name}</td>
                     <td className="py-3 px-4">
-                      <Button variant="destructive" size="sm" onClick={() => handleDelete('position', pos.id)}>
-                        <VscTrash />
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm" onClick={() => openModal('edit', 'position', pos)}>
+                          <VscEdit />
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => handleDelete('position', pos.id)}>
+                          <VscTrash />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -240,7 +272,7 @@ const CompanySettings = () => {
             <DialogTitle>{t(`settings_page.${modalMode}_${modalType}_title`)}</DialogTitle>
           </DialogHeader>
           {modalType === 'department' ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 py-4">
               <div>
                 <Label htmlFor="deptName">{t('settings_page.name_label')}</Label>
                 <Input id="deptName" type="text" value={deptName} onChange={(e) => setDeptName(e.target.value)} required />
@@ -261,18 +293,22 @@ const CompanySettings = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex space-x-2 justify-end mt-6">
+              <div className="flex justify-end space-x-2 mt-4">
                 <Button type="button" variant="outline" onClick={closeModal}>{t('leave_management_page.cancel_button')}</Button>
                 <Button type="submit">{t('employees_page.edit_modal.save_button')}</Button>
               </div>
             </form>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 py-4">
               <div>
-                <Label htmlFor="posName">{t('settings_page.name_label')}</Label>
-                <Input id="posName" type="text" value={posName} onChange={(e) => setPosName(e.target.value)} required />
+                <Label htmlFor="posNameEn">{t('settings_page.name_en_label')}</Label>
+                <Input id="posNameEn" type="text" value={posNameEn} onChange={(e) => setPosNameEn(e.target.value)} required />
               </div>
-              <div className="flex space-x-2 justify-end mt-6">
+              <div>
+                <Label htmlFor="posNameFr">{t('settings_page.name_fr_label')}</Label>
+                <Input id="posNameFr" type="text" value={posNameFr} onChange={(e) => setPosNameFr(e.target.value)} required />
+              </div>
+              <div className="flex justify-end space-x-2 mt-4">
                 <Button type="button" variant="outline" onClick={closeModal}>{t('leave_management_page.cancel_button')}</Button>
                 <Button type="submit">{t('employees_page.edit_modal.save_button')}</Button>
               </div>

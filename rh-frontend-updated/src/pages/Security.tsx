@@ -105,7 +105,7 @@ const SecurityPage = () => {
       <Card>
         <CardHeader>
           <CardTitle>{t('security_page.title')}</CardTitle>
-          <CardDescription>{t('security_page.description')}</CardDescription>
+          <CardDescription>{t('security_page.subtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">

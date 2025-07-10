@@ -58,12 +58,17 @@
     "error_password_length": "Le nouveau mot de passe doit contenir au moins 8 caractères.",
     "error_passwords_no_match": "Les nouveaux mots de passe ne correspondent pas.",
     "error_2fa_required": "Veuillez saisir votre code 2FA pour confirmer.",
-    "error_failed_password_change": "Échec de la modification du mot de passe."
+    "error_failed_password_change": "Échec de la modification du mot de passe.",
+    "personal_info_subtitle": "Gérez vos informations personnelles et vos préférences",
+    "personal_details_description": "Mettez à jour vos informations personnelles ci-dessous",
+    "password_update_description": "Mettez à jour votre mot de passe ci-dessous"
   },
   "security_page": {
     "title": "Paramètres de Sécurité",
     "subtitle": "Gérez les fonctionnalités de sécurité de votre compte.",
     "2fa_title": "Authentification à Deux Facteurs (2FA)",
+    "2fa_label": "Authentification à Deux Facteurs",
+
     "2fa_description": "Ajoutez une couche de sécurité supplémentaire à votre compte. Une fois activée, vous devrez saisir un code de votre application d'authentification lors de votre connexion.",
     "2fa_enabled": "L'A2F est actuellement activée sur votre compte.",
     "2fa_disabled": "L'A2F n'est pas actuellement activée sur votre compte.",
@@ -71,7 +76,19 @@
     "disable_2fa_button": "Désactiver l'A2F",
     "scan_qr_code": "Scannez ce code QR avec votre application d'authentification.",
     "verify_code_prompt": "Saisissez le code à 6 chiffres de votre application pour vérifier.",
-    "verify_and_enable_button": "Vérifier et Activer"
+    "verify_and_enable_button": "Vérifier et Activer",
+    "generate_qr_error": "Échec de la génération du code QR.",
+    "code_length_error": "Le code doit contenir 6 chiffres.",
+    "invalid_code_error": "Code 2FA invalide.",
+    "enable_success": "A2F activée avec succès !",
+    "disable_success": "A2F désactivée avec succès !",
+    "enable_modal_title": "Activer l'authentification à deux facteurs",
+    "enable_modal_desc": "Scannez le code QR avec votre application d'authentification et entrez le code pour vérifier.",
+    "enter_code": "Saisissez le code à 6 chiffres de votre application pour vérifier.",
+    "verify_button": "Vérifier et Activer",
+    "disable_modal_title": "Désactiver l'authentification à deux facteurs",
+    "disable_modal_desc": "Entrez votre code 2FA pour confirmer la désactivation de l'authentification à deux facteurs.",
+    "enter_code_to_disable": "Saisissez le code 2FA pour désactiver"
   },
   "leave_management_page": {
     "title": "Gestion des Congés",
@@ -311,6 +328,8 @@
     "create_position_title": "Créer un Poste",
     "add_position_title": "Ajouter un Poste",
     "name_label": "Nom",
+    "name_en_label": "Nom en Anglais",
+    "name_fr_label": "Nom en Français",
     "color_label": "Couleur",
     "actions_label": "Actions",
     "default_shift_label": "Quart par Défaut",

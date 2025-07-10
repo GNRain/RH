@@ -13,13 +13,13 @@ interface UserProfile {
   familyName: string;
   email: string;
   cin: string;
-  position: string;
-  department: string;
+  position: { name: string };
+  department: { name: string };
   joinDate: string;
 }
 
 const Profile = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,7 +37,7 @@ const Profile = () => {
       setLoading(true);
       try {
         // --- Use apiClient for the request ---
-        const response = await apiClient.get('/users/me');
+        const response = await apiClient.get('/users/me', { params: { lang: i18n.language.split('-')[0] } });
         setUser(response.data);
       } catch (err) {
         setError('Failed to load user profile.');
@@ -46,7 +46,7 @@ const Profile = () => {
       }
     };
     fetchUserProfile();
-  }, []);
+  }, [i18n.language]);
 
   const handleInitiatePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +106,7 @@ const Profile = () => {
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('profile_page.personal_information')}</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Manage your personal information and preferences
+          {t('profile_page.personal_info_subtitle')}
         </p>
       </div>
 
@@ -114,7 +114,7 @@ const Profile = () => {
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-white">{t('profile_page.personal_information')}</CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-400">
-            Update your personal details below
+            {t('profile_page.personal_details_description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -134,11 +134,11 @@ const Profile = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="position" className="text-gray-700 dark:text-gray-300">{t('profile_page.position')}</Label>
-                <Input id="position" value={user.position} disabled />
+                <Input id="position" value={user.position.name} disabled />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="department" className="text-gray-700 dark:text-gray-300">{t('profile_page.department')}</Label>
-                <Input id="department" value={user.department} disabled />
+                <Input id="department" value={user.department.name} disabled />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="joinDate" className="text-gray-700 dark:text-gray-300">{t('profile_page.join_date')}</Label>
@@ -155,7 +155,7 @@ const Profile = () => {
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-white">{t('profile_page.change_password_title')}</CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-400">
-            Update your password below
+            {t('profile_page.password_update_description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

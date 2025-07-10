@@ -40,7 +40,7 @@ const initialCreateFormData = {
 };
 
 const Employee = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -70,7 +70,7 @@ const Employee = () => {
       if (departmentFilter !== 'all') params.append('department', departmentFilter);
       if (statusFilter !== 'all') params.append('status', statusFilter);
       
-      const response = await apiClient.get('/users', { params });
+      const response = await apiClient.get('/users', { params: { ...params, lang: i18n.language.split('-')[0] } });
       setUsers(response.data);
     } catch (err) { console.error('Failed to fetch employees.', err); }
     finally { setLoading(false); }
@@ -83,7 +83,7 @@ const Employee = () => {
           apiClient.get('/users', { params: { role: 'TEAM_LEADER' } }),
           apiClient.get('/users', { params: { role: 'MANAGER' } }),
           apiClient.get('/departments'),
-          apiClient.get('/positions'),
+          apiClient.get('/positions', { params: { lang: i18n.language.split('-')[0] } }),
         ]);
         setTeamLeaders(tlRes.data);
         setManagers(managerRes.data);
@@ -94,7 +94,7 @@ const Employee = () => {
     fetchSupportingData();
   }, []);
 
-  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+  useEffect(() => { fetchUsers(); }, [fetchUsers, i18n.language]);
 
   const handleCreateFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -269,7 +269,7 @@ const Employee = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">{t('employees_page.placeholders.none')}</SelectItem>
-                    {positions.map(p => (<SelectItem key={p.id} value={p.id}>{t(`positions.${p.name}`)}</SelectItem>))}
+                    {positions.map(p => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
@@ -417,7 +417,7 @@ const Employee = () => {
                         <div className="text-sm text-gray-900">{user.email}</div>
                         <div className="text-sm text-gray-600">{user.phoneNumber}</div>
                       </td>
-                      <td className="py-4 px-4 text-gray-900">{t(`positions.${user.position.name}`)}</td>
+                      <td className="py-4 px-4 text-gray-900">{user.position.name}</td>
                       <td className="py-4 px-4">
                         <Badge className={getDepartmentColor(user.department.name)}>
                           {user.department.name}
@@ -466,7 +466,7 @@ const Employee = () => {
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="none">{t('employees_page.placeholders.none')}</SelectItem>
-                                      {positions.map(p => (<SelectItem key={p.id} value={p.id}>{t(`positions.${p.name}`)}</SelectItem>))}
+                                      {positions.map(p => (<SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>))}
                                     </SelectContent>
                                   </Select>
                                 </div>

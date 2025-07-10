@@ -43,7 +43,7 @@ export class AuthService {
       sub: user.id,
       cin: user.cin,
       department: user.department.name,
-      position: user.position.name,
+      position: user.position.defaultName,
       role: user.role,
       isTwoFactorAuthenticated: false,
     };
@@ -89,7 +89,7 @@ export class AuthService {
     
     const payload = { 
         sub: user.id, cin: user.cin, 
-        department: user.department.name, position: user.position.name,
+        department: user.department.name, position: user.position.defaultName,
         role: user.role,
         isTwoFactorAuthenticated: true,
     };
@@ -133,7 +133,7 @@ export class AuthService {
     
     const payload = { 
         sub: user.id, cin: user.cin, 
-        department: user.department.name, position: user.position.name,
+        department: user.department.name, position: user.position.defaultName,
         role: user.role,
         isTwoFactorAuthenticated: true,
     };

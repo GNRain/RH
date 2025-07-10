@@ -71,11 +71,12 @@ model Department {
 }
 
 model Position {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  users     User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String              @id @default(cuid())
+  defaultName String?
+  users       User[]
+  translations PositionTranslation[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 }
 
 model LeaveRequest {
@@ -196,4 +197,14 @@ model DocumentCategory {
   name      String     @unique
   color     String     @default("#CCCCCC")
   documents Document[]
+}
+
+model PositionTranslation {
+  id           String   @id @default(cuid())
+  positionId   String
+  position     Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  languageCode String
+  translatedName String
+
+  @@unique([positionId, languageCode])
 }

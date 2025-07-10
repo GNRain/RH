@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { PositionsService } from './positions.service';
 import { CreatePositionDto } from './dto/create-position.dto';
 import { UpdatePositionDto } from './dto/update-position.dto';
@@ -19,8 +19,8 @@ export class PositionsController {
   }
 
   @Get()
-  findAll() {
-    return this.positionsService.findAll();
+  findAll(@Query('lang') lang?: string) {
+    return this.positionsService.findAll(lang);
   }
 
   @Patch(':id')

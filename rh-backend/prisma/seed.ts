@@ -32,17 +32,61 @@
 
     // 4. Create Positions
     console.log('Creating positions...');
-    const dhrPos = await prisma.position.create({ data: { name: 'position_director_hr' } });
-    const hrPos = await prisma.position.create({ data: { name: 'position_hr_generalist' } });
-    const itManagerPos = await prisma.position.create({ data: { name: 'position_it_manager' } });
-    const bizManagerPos = await prisma.position.create({ data: { name: 'position_biz_manager' } });
-    const lawManagerPos = await prisma.position.create({ data: { name: 'position_law_manager' } });
-    const itLeadPos = await prisma.position.create({ data: { name: 'position_it_lead' } });
-    const bizLeadPos = await prisma.position.create({ data: { name: 'position_biz_lead' } });
-    const lawLeadPos = await prisma.position.create({ data: { name: 'position_law_lead' } });
-    const devPos = await prisma.position.create({ data: { name: 'position_developer' } });
-    const analystPos = await prisma.position.create({ data: { name: 'position_analyst' } });
-    const paralegalPos = await prisma.position.create({ data: { name: 'position_paralegal' } });
+    const dhrPos = await prisma.position.create({ data: { defaultName: 'Director HR' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: dhrPos.id, languageCode: 'en', translatedName: 'Director HR' },
+      { positionId: dhrPos.id, languageCode: 'fr', translatedName: 'Directeur RH' },
+    ] });
+    const hrPos = await prisma.position.create({ data: { defaultName: 'HR Generalist' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: hrPos.id, languageCode: 'en', translatedName: 'HR Generalist' },
+      { positionId: hrPos.id, languageCode: 'fr', translatedName: 'Généraliste RH' },
+    ] });
+    const itManagerPos = await prisma.position.create({ data: { defaultName: 'IT Manager' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: itManagerPos.id, languageCode: 'en', translatedName: 'IT Manager' },
+      { positionId: itManagerPos.id, languageCode: 'fr', translatedName: 'Responsable Informatique' },
+    ] });
+    const bizManagerPos = await prisma.position.create({ data: { defaultName: 'Business Manager' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: bizManagerPos.id, languageCode: 'en', translatedName: 'Business Manager' },
+      { positionId: bizManagerPos.id, languageCode: 'fr', translatedName: 'Responsable Commercial' },
+    ] });
+    const lawManagerPos = await prisma.position.create({ data: { defaultName: 'Law Manager' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: lawManagerPos.id, languageCode: 'en', translatedName: 'Law Manager' },
+      { positionId: lawManagerPos.id, languageCode: 'fr', translatedName: 'Responsable Juridique' },
+    ] });
+    const itLeadPos = await prisma.position.create({ data: { defaultName: 'IT Lead' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: itLeadPos.id, languageCode: 'en', translatedName: 'IT Lead' },
+      { positionId: itLeadPos.id, languageCode: 'fr', translatedName: 'Chef d\'équipe Informatique' },
+    ] });
+    const bizLeadPos = await prisma.position.create({ data: { defaultName: 'Business Lead' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: bizLeadPos.id, languageCode: 'en', translatedName: 'Business Lead' },
+      { positionId: bizLeadPos.id, languageCode: 'fr', translatedName: 'Chef d\'équipe Commercial' },
+    ] });
+    const lawLeadPos = await prisma.position.create({ data: { defaultName: 'Law Lead' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: lawLeadPos.id, languageCode: 'en', translatedName: 'Law Lead' },
+      { positionId: lawLeadPos.id, languageCode: 'fr', translatedName: 'Chef d\'équipe Juridique' },
+    ] });
+    const devPos = await prisma.position.create({ data: { defaultName: 'Developer' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: devPos.id, languageCode: 'en', translatedName: 'Developer' },
+      { positionId: devPos.id, languageCode: 'fr', translatedName: 'Développeur' },
+    ] });
+    const analystPos = await prisma.position.create({ data: { defaultName: 'Analyst' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: analystPos.id, languageCode: 'en', translatedName: 'Analyst' },
+      { positionId: analystPos.id, languageCode: 'fr', translatedName: 'Analyste' },
+    ] });
+    const paralegalPos = await prisma.position.create({ data: { defaultName: 'Paralegal' } });
+    await prisma.positionTranslation.createMany({ data: [
+      { positionId: paralegalPos.id, languageCode: 'en', translatedName: 'Paralegal' },
+      { positionId: paralegalPos.id, languageCode: 'fr', translatedName: 'Paralégal' },
+    ] });
 
 
     // 3. Create Users

@@ -7,25 +7,91 @@ import { UpdatePositionDto } from './dto/update-position.dto';
 export class PositionsService {
   constructor(private prisma: PrismaService) {}
 
-  create(createPositionDto: CreatePositionDto) {
-    // We store positions as keys, so we ensure it's formatted correctly
-    const positionKey = `position_${createPositionDto.name.toLowerCase().replace(/\s+/g, '_')}`;
-    return this.prisma.position.create({ data: { name: positionKey } });
-  }
+  async create(createPositionDto: CreatePositionDto) {
+    const { defaultName, translations } = createPositionDto;
 
-  findAll() {
-    return this.prisma.position.findMany({ orderBy: { name: 'asc' } });
-  }
+    const newPosition = await this.prisma.position.create({
+      data: {
+        defaultName: defaultName,
+      },
+    });
 
-  update(id: string, updatePositionDto: UpdatePositionDto) {
-    if (!updatePositionDto.name) {
-      throw new Error('Position name is required for update.');
+    if (translations && translations.length > 0) {
+      await this.prisma.positionTranslation.createMany({
+        data: translations.map(t => ({
+          positionId: newPosition.id,
+          languageCode: t.languageCode,
+          translatedName: t.translatedName,
+        })),
+      });
+    } else {
+      // Create a default translation if none are provided
+      await this.prisma.positionTranslation.create({
+        data: {
+          positionId: newPosition.id,
+          languageCode: 'en', // Default language
+          translatedName: defaultName,
+        },
+      });
     }
-    const positionKey = `position_${updatePositionDto.name.toLowerCase().replace(/\s+/g, '_')}`;
-    return this.prisma.position.update({ where: { id }, data: { name: positionKey } });
+
+    return newPosition;
   }
 
-  remove(id: string) {
+  async findAll(lang?: string) {
+    const positions = await this.prisma.position.findMany({
+      include: {
+        translations: true,
+      },
+      orderBy: { defaultName: 'asc' },
+    });
+
+    return positions.map(position => {
+      const translatedName = lang
+        ? position.translations.find(t => t.languageCode === lang)?.translatedName
+        : position.defaultName; // Fallback to defaultName if no lang or translation not found
+
+      return {
+        ...position,
+        name: translatedName || position.defaultName, // Ensure 'name' field exists for frontend compatibility
+      };
+    });
+  }
+
+  async update(id: string, updatePositionDto: UpdatePositionDto) {
+    const { defaultName, translations } = updatePositionDto;
+
+    const updatedPosition = await this.prisma.position.update({
+      where: { id },
+      data: {
+        defaultName: defaultName || undefined, // Only update if provided
+      },
+    });
+
+    if (translations) {
+      // Delete existing translations for this position
+      await this.prisma.positionTranslation.deleteMany({
+        where: { positionId: id },
+      });
+
+      // Create new translations
+      await this.prisma.positionTranslation.createMany({
+        data: translations.map(t => ({
+          positionId: id,
+          languageCode: t.languageCode,
+          translatedName: t.translatedName,
+        })),
+      });
+    }
+
+    return updatedPosition;
+  }
+
+  async remove(id: string) {
+    // Delete associated translations first
+    await this.prisma.positionTranslation.deleteMany({
+      where: { positionId: id },
+    });
     return this.prisma.position.delete({ where: { id } });
   }
 }

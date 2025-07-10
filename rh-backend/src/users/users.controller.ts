@@ -15,8 +15,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   
   @Get('me')
-  getProfile(@Request() req) {
-    return this.usersService.findOne(req.user.sub);
+  getProfile(@Request() req, @Query('lang') lang?: string) {
+    return this.usersService.findOne(req.user.sub, lang);
   }
   
   // ... other endpoints
@@ -49,15 +49,16 @@ export class UsersController {
     @Query('department') department?: string,
     @Query('status') status?: UserStatus,
     @Query('role') role?: Role,
+    @Query('lang') lang?: string,
   ) {
-    return this.usersService.findAll({ search, department, status, role });
+    return this.usersService.findAll({ search, department, status, role, lang });
   }
 
   @Get(':id')
   @UseGuards(DepartmentsGuard)
   @Departments('HR')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  findOne(@Param('id') id: string, @Query('lang') lang?: string) {
+    return this.usersService.findOne(id, lang);
   }
 
   @Patch(':id')
