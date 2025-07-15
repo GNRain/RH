@@ -6,24 +6,26 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginHeader } from '../../components/LoginHeader';
 import './LoginPage.css';
+import { useToast } from '@/hooks/use-toast';
 
 export function LoginPage() {
   const { t } = useTranslation();
   const { login } = useAuth();
+  const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [cin, setCin] = useState('');
   const [password, setPassword] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [partialToken, setPartialToken] = useState('');
-  const [error, setError] = useState('');
+  
   const [loading, setLoading] = useState(false);
 
   // Logic functions remain the same
-  const resetFlowState = () => { setError(''); };
+  const resetFlowState = () => {};
   const handleNextStep = () => setStep(prev => prev + 1);
 
   const handleLoginSubmit = async () => {
-    if (!cin || !password) return setError(t('login_page.error_cin_required'));
+    if (!cin || !password) { toast({ title: t('login_page.error_title'), description: t('login_page.error_cin_required'), variant: "destructive" }); return; }
     resetFlowState(); setLoading(true);
     try {
       // --- Use apiClient for the request ---
@@ -31,19 +33,19 @@ export function LoginPage() {
       if (response.data.access_token) { setStep(4); login(response.data.access_token); }
       else if (response.data.partial_token) { setPartialToken(response.data.partial_token); setStep(3); }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An unexpected error occurred.');
+      toast({ title: t('login_page.error_title'), description: err.response?.data?.message || 'An unexpected error occurred.', variant: "destructive" });
     } finally { setLoading(false); }
   };
 
   const handle2faSubmit = async () => {
-    if (!twoFactorCode) return setError(t('login_page.error_2fa_code_required'));
-    setError(''); setLoading(true);
+    if (!twoFactorCode) { toast({ title: t('login_page.error_title'), description: t('login_page.error_2fa_code_required'), variant: "destructive" }); return; }
+    setLoading(true);
     try {
       // --- Use apiClient for the request ---
       const response = await apiClient.post('/auth/2fa/authenticate', { partial_token: partialToken, code: twoFactorCode });
       setStep(4); login(response.data.access_token);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An unexpected error occurred.');
+      toast({ title: t('login_page.error_title'), description: err.response?.data?.message || 'An unexpected error occurred.', variant: "destructive" });
     } finally { setLoading(false); }
   };
 
@@ -138,7 +140,7 @@ export function LoginPage() {
           </Step>
 
         </Stepper>
-        {error && <p className="text-destructive text-center mt-6 font-semibold">{error}</p>}
+        
       </div>
     </div>
   );

@@ -5,6 +5,7 @@
   margin-left: auto;
   margin-right: auto;
   width: 100%; /* Let the wrapper control the width */
+  max-width: 450px; /* Explicitly set max-width */
   border-radius: 1.5rem;
   border: 1px solid hsl(var(--border)); /* Use theme-aware border */
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),

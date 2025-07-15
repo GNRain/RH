@@ -20,6 +20,8 @@
 }
 
 .auth-form-container {
+  width: 100%;
+  max-width: 450px;
   z-index: 5; /* Ensure the form is on top of the Aurora background */
 }
 

@@ -182,7 +182,7 @@ function SlideTransition({ children, direction, onHeightReady }: SlideTransition
       animate="center"
       exit="exit"
       transition={{ duration: 0.4 }}
-      style={{ position: "absolute", left: 0, right: 0, top: 0 }}
+      style={{ /* Removed absolute positioning */ }}
     >
       {children}
     </motion.div>
